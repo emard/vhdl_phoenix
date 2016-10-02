@@ -14,7 +14,6 @@ port(
  reset    : in std_logic;
  hclk     : out std_logic;
  hcnt     : in std_logic_vector(9 downto 1);
- hcnt_out : out std_logic_vector(9 downto 1);
  vcnt     : in std_logic_vector(9 downto 1);
  sync     : out std_logic;
  adrsel   : out std_logic;
@@ -167,19 +166,18 @@ hclk <= hclk_i;
 --hcnt <= std_logic_vector(hcnt_i);
 --vcnt <= std_logic_vector(vcnt_i);
 hcnt_i <= unsigned(hcnt)
-     when hcnt >= 160
+     when hcnt >= 272
 	  else (others => '1');
---hcnt_i <= unsigned(hcnt+160);
-hcnt_out <= std_logic_vector(hcnt_i);
 vcnt_i <= unsigned(vcnt);
 --sync <= not(sync1_i xor sync2_i) ; original syncs
-rdy  <= not(vblank_n and (not (rdy1_i and rdy2_i and not hcnt_i(9)))); 
-adrsel <= vblank_n and hcnt_i(9);
+rdy  <= not(vblank_n and (not (rdy1_i and rdy2_i and not (hcnt_i(9) and hcnt_i(7) )   ))); 
+adrsel <= vblank_n and hcnt_i(9) and hcnt_i(7);
 
 vblank       <= not vblank_n;
-hblank_frgrd <= hstb_i;
-hblank_bkgrd <= not(hcnt_i(9) and q1) and not(hcnt_i(9) and (q2));
-
+-- hblank_frgrd <= hstb_i;
+hblank_frgrd <= '0';
+--hblank_bkgrd <= not(hcnt_i(9) and q1) and not(hcnt_i(9) and (q2));
+hblank_bkgrd <= '0';
 -- make sync pulses width close to 4.7us (26 pixels)
 -- and add compensation pulse 2.35us (13 pixels)
 -- falling edge should always occured at 32 or 64us
