@@ -15,7 +15,7 @@ port(
  hclk     : out std_logic;
  hcnt     : in std_logic_vector(9 downto 1);
  hcnt_out : out std_logic_vector(9 downto 1);
- vcnt     : in std_logic_vector(8 downto 1);
+ vcnt     : in std_logic_vector(9 downto 1);
  sync     : out std_logic;
  adrsel   : out std_logic;
  rdy      : out std_logic;
@@ -30,7 +30,7 @@ architecture struct of phoenix_video_vga is
  signal hclk_i : std_logic := '0';
  signal hstb_i : std_logic := '0';
  signal hcnt_i : unsigned(9 downto 1) := (others=>'0');
- signal vcnt_i : unsigned(8 downto 1) := (others=>'0');
+ signal vcnt_i : unsigned(9 downto 1) := (others=>'0');
  signal vblank_n : std_logic := '0';
  signal sync1_i  : std_logic;
  signal sync2_i  : std_logic;
@@ -43,7 +43,7 @@ architecture struct of phoenix_video_vga is
  signal pulse_d1 : std_logic;
  signal pulse_d2 : std_logic;
  signal sync_i   : std_logic;
- signal vcntr_i  : unsigned(8 downto 1) := (others=>'0');
+ signal vcntr_i  : unsigned(9 downto 1) := (others=>'0');
  
  signal rdy1_i  : std_logic;
  signal rdy2_i  : std_logic;
@@ -108,14 +108,15 @@ end process;
 
 -- vertical blanking
 vblank_n <=  
- not(vcnt_i(8) and vcnt_i(7))
- or
- ( not
-  ( not (vcnt_i(8) and vcnt_i(7) and not vcnt_i(6) and not vcnt_i(5) and not vcnt_i(4))
-    and 
-    not (vcnt_i(8) and vcnt_i(7) and not vcnt_i(6) and not vcnt_i(5) and vcnt_i(4))
-  )
- );
+ not(vcnt_i(9) and vcnt_i(8) and vcnt_i(7))
+-- or
+-- ( not
+--  ( not (vcnt_i(8) and vcnt_i(7) and not vcnt_i(6) and not vcnt_i(5) and not vcnt_i(4))
+--    and 
+--    not (vcnt_i(8) and vcnt_i(7) and not vcnt_i(6) and not vcnt_i(5) and vcnt_i(4))
+--  )
+-- )
+ ;
 
 -- vertical syncs 
 sync1_i <= not( vcnt_i(8) and vcnt_i(7) and (vcnt_i(6) and not vcnt_i(5) and not vcnt_i(4) and not vcnt_i(3)));      
@@ -214,13 +215,13 @@ end process;
 
 -- mux syncs with respect to line counter
 with vcntr_i select
-sync_i <= pulse_b1 and pulse_b2 when X"DF",
-          pulse_b1 and pulse_b2 when X"E0",
-          pulse_b1 and pulse_d2 when X"E1",
-          pulse_c1 or  pulse_c2 when X"E2",
-          pulse_c1 or  pulse_c2 when X"E3",
-         (pulse_c1 and not pulse_d1) or (pulse_b1 and pulse_b2 and pulse_d1) when X"E4",
-          pulse_b1 and pulse_b2 when X"E5",  
+sync_i <= pulse_b1 and pulse_b2 when '0' & X"DF",
+          pulse_b1 and pulse_b2 when '0' & X"E0",
+          pulse_b1 and pulse_d2 when '0' & X"E1",
+          pulse_c1 or  pulse_c2 when '0' & X"E2",
+          pulse_c1 or  pulse_c2 when '0' & X"E3",
+         (pulse_c1 and not pulse_d1) or (pulse_b1 and pulse_b2 and pulse_d1) when '0' & X"E4",
+          pulse_b1 and pulse_b2 when '0' & X"E5",  
           pulse_a when others;
  
 end struct;

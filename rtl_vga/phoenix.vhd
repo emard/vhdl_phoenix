@@ -150,9 +150,8 @@ G_vga: if C_vga generate
   port map
   (
     clk11    => clk_pixel,
-    reset    => reset,
     hcnt     => hcnt,
-    vcnt     => vcnt,
+    vcnt     => S_vcnt,
     sync     => sync,
     vsync    => video_vs,
     hsync    => video_hs,
@@ -160,9 +159,9 @@ G_vga: if C_vga generate
     rdy      => rdy,    -- Ready ('1')cpu can access RAMs read/write 
     vblank   => vblank,
     hblank_frgrd => hblank_frgrd,
-    hblank_bkgrd => hblank_bkgrd
+    hblank_bkgrd => hblank_bkgrd,
+    reset    => reset
   );
-  -- hclk_n  <= not hclk;
   reset_n <= not reset;
 
   process(clk_pixel)
@@ -195,12 +194,17 @@ G_vga: if C_vga generate
       vga_blank => S_vga_blank, -- '1' when outside of horizontal or vertical graphics area
       vga_vblank => S_vga_vblank -- '1' when outside of vertical graphics area (used for vblank interrupt)
   );
+  --adrsel <= '1' when hcnt < 32 else '0';
+  --rdy <= S_vga_blank;
+  --vblank <= S_vga_vblank;
+  --hblank_frgrd <= S_vga_blank and not S_vga_vblank;
+  --hblank_bkgrd <= S_vga_blank and not S_vga_vblank;
   vcnt <= S_vcnt(8 downto 1);
   vga_r     <= rgb_1(0) & rgb_0(0);
   vga_g     <= rgb_1(2) & rgb_0(2);
   vga_b     <= rgb_1(1) & rgb_0(1);
   vga_blank <= S_vga_blank;
-  vga_vblank <= S_vga_blank;
+  vga_vblank <= S_vga_vblank;
 end generate;
 
 -- microprocessor 8085
