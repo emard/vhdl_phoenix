@@ -10,11 +10,10 @@ use ieee.numeric_std.all;
 
 entity phoenix is
 generic (
-  C_vga: boolean := true
+  C_vga: boolean := false
 );
 port(
- clk_50m     : in std_logic;
- clock_11     : in std_logic;
+ clk_pixel    : in std_logic; -- 11 MHz for TV, 25 MHz for VGA
  reset        : in std_logic;
 -- tv15Khz_mode : in std_logic;
  dip_switch   : in std_logic_vector(7 downto 0);
@@ -123,28 +122,13 @@ architecture struct of phoenix is
  signal coin         : std_logic;
  signal player_start : std_logic_vector(1 downto 0);
  signal buttons      : std_logic_vector(3 downto 0);
- 
 begin
-
--- make 10MHz clock from 50MHz
-process (clk_50m)
- variable cnt : std_logic_vector(3 downto 0) := (others => '0');
-begin
- if rising_edge(clk_50m) then
-  cnt := std_logic_vector(unsigned(cnt) + 1);
-  clk10 <= '0';
-  if cnt = X"5" then
-   cnt := (others => '0');
-   clk10 <= '1';
-  end if;   
- end if;
-end process;
 
 -- video address/sync generator
 G_tv: if not C_vga generate
 video_gen : entity work.phoenix_video
 port map(
- clk11    => clock_11,
+ clk11    => clk_pixel,
  reset    => reset,
  hclk     => hclk,
  hcnt     => hcnt,
@@ -164,7 +148,7 @@ G_vga: if C_vga generate
   entity work.phoenix_video_vga
   port map
   (
-    clk11    => clock_11,
+    clk11    => clk_pixel,
     reset    => reset,
     hcnt     => hcnt,
     vcnt     => vcnt,
@@ -180,9 +164,9 @@ G_vga: if C_vga generate
   -- hclk_n  <= not hclk;
   reset_n <= not reset;
 
-  process(clock_11)
+  process(clk_pixel)
   begin
-    if rising_edge(clock_11) then
+    if rising_edge(clk_pixel) then
 	     hclk <= not hclk;
 		  hclk_n <= not hclk;
 	 end if;
@@ -191,7 +175,7 @@ G_vga: if C_vga generate
   -- VGA video generator - pixel clock synchronous
   vgabitmap: entity work.vga
   port map (
-      clk_pixel => clock_11,
+      clk_pixel => clk_pixel,
       test_picture => '0', -- shows test picture when VGA is disabled (on startup)
       fetch_next => open,
       line_repeat => open,
@@ -481,7 +465,7 @@ port map(
 -- get scancode from keyboard
 keybord : entity work.io_ps2_keyboard
 port map (
-  clk       => clock_11,
+  clk       => clk_pixel,
   kbd_clk   => ps2_clk,
   kbd_dat   => ps2_dat,
   interrupt => kbd_intr,
@@ -491,7 +475,7 @@ port map (
 -- translate scancode to joystick
 Joystick : entity work.kbd_joystick
 port map (
-  clk         => clock_11,
+  clk         => clk_pixel,
   kbdint      => kbd_intr,
   kbdscancode => std_logic_vector(kbd_scancode), 
   JoyPCFRLDU  => JoyPCFRLDU 
