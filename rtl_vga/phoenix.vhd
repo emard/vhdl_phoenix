@@ -44,6 +44,7 @@ architecture struct of phoenix is
  signal hclk_div: std_logic;
  signal hcnt, S_hcnt   : std_logic_vector(9 downto 1);
  signal vcnt   : std_logic_vector(8 downto 1);
+ signal S_vcnt: std_logic_vector(9 downto 1);
  signal sync   : std_logic;
  signal adrsel : std_logic; 
  signal rdy    : std_logic := '1'; 
@@ -182,12 +183,10 @@ G_vga: if C_vga generate
       red_byte    => (others => '0'), -- framebuffer inputs not used
       green_byte  => (others => '0'), -- rgb signal is synchronously generated
       blue_byte   => (others => '0'), -- and replaced
-		beam_x(9 downto 1) => hcnt,
-		beam_x(0 downto 0) => open,
-
-		beam_y(9 downto 8) => open,
-		beam_y(7 downto 0) => vcnt, 
-		--beam_y(0 downto 0) => open,
+      beam_x(9 downto 1) => hcnt,
+      beam_x(0 downto 0) => open,
+      beam_y(9 downto 9) => open,
+      beam_y(8 downto 0) => S_vcnt,
       vga_r(7 downto 6) => open, vga_r(5 downto 0) => open,
       vga_g(7 downto 6) => open, vga_g(5 downto 0) => open,
       vga_b(7 downto 6) => open, vga_b(5 downto 0) => open,
@@ -196,6 +195,7 @@ G_vga: if C_vga generate
       vga_blank => S_vga_blank, -- '1' when outside of horizontal or vertical graphics area
       vga_vblank => S_vga_vblank -- '1' when outside of vertical graphics area (used for vblank interrupt)
   );
+  vcnt <= S_vcnt(8 downto 1);
   vga_r     <= rgb_1(0) & rgb_0(0);
   vga_g     <= rgb_1(2) & rgb_0(2);
   vga_b     <= rgb_1(1) & rgb_0(1);
@@ -267,7 +267,7 @@ frgnd_horz_cnt <= hcnt(8 downto 1) when pl2_cocktail = '0' else not hcnt(8 downt
 bkgnd_horz_cnt <= frgnd_horz_cnt + bkgnd_offset;
 
 -- vertical scan video RAMs address
-vert_cnt <= vcnt when pl2_cocktail = '0' else not (vcnt + X"30");
+vert_cnt <= S_vcnt(9 downto 2) when pl2_cocktail = '0' else not (S_vcnt(9 downto 2) + X"30");
 
 -- get tile_ids from RAMs
 frgnd_tile_id <= frgnd_ram_do;
