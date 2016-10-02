@@ -1,0 +1,569 @@
+-------------------------------------
+
+1) Introduction
+2) Charging/Discharging the capacitor
+3) Phoenix Effect #1 command
+4) Phoenix Effect #2 filter
+5) Phoenix Effect #3 command #1
+6) Phoenix Effect #3 command #2
+7) NE555 oscillator
+8) Phoenix Effect #1 Oscillator
+9) Phoenix Effect #2 Oscillators
+10) Phoenix Effect #3 Oscillators
+11) VHDL implementation
+
+----------------------------
+1) Introduction
+----------------------------
+
+Phoenix Arcade game sound effects are mainly based on analog components. Capacitors play a central role and are use as well as to generate one given frequency (oscillator) or to control the variation of that frequency and the sound level within the effect (command). Phoenix game contains three sound effects and one tone generator. I will not describe the tone generator here (but VHDL code is also available). The objectif is to describe how each effect is produced. This analysis is based on the CENTURI schematic and on the MAME source code both available on the Internet. 
+
+I will first give an explanation of how capacitors behavior will be modelised through a generic equation. Then I will give an explanation of how each effect command can be represented with the generic equation. Next I will present the NE555 behaviors and how it is used within each effect. Finally I will give the basic VHDL code that will be used to represent the generic capacitor charge/discharge.
+
+This text document have to be accompagnied by one graphic chart representing the electrical schematics of each effect and one computing sheet allowing to compute many parameters with respect to the actual components value. The electrical schematics gives the component, voltage (arrow beside component) or current (arrow drawn on wire) identification which are used in the present text.   
+
+--------------------------------------------------------------------------
+2) Charging/Discharging the capacitor (first frame in the schematic chart)
+--------------------------------------------------------------------------
+
+The 'C' capacitor voltage Uc(t) vary with respect to the current flowing thru it's pin Ic(t) :   
+
+Uc(t+dt) = Uc(t) + Ic(t).dt/C
+
+
+When charging thru a resistor (situation #1) the current flowing thru the capacitor (Ic) is equal to the current flowing thru the resistor (Ir). The current thru the resistor is equal to the voltage at it's pin divided by it's value R.
+
+So Ic(t) = Ir(t) = (V-Uc(t))/R
+
+=> Uc(t+dt) = Uc(t) + (V-Uc(t)).dt/RC 
+
+
+When Uc = 0, Ic is large and Uc increase rapidly.
+
+As long as Uc is growing (V-Uc) decrease, Ir and Ic do the same, Uc continue growing but more and more slowly. When finaly Uc = V, Ir = Ic =0,  no more current flow thru R nor C. Uc stop growing.  
+
+----------------------------
+ 
+Now assuming that R is not connected to V but to GND instead (situation #2), and assume that the capacitor voltage is Uc at the beginning. The current flow thru the resistor and discharge the capacitor. We use the same equation with V=0 :
+
+Uc(t+dt) = Uc(t) - Uc(t).dt/RC     
+
+Uc decrease rapidly at the beginning but slow down more and more until C is completly discharged : Uc = 0.
+
+----------------------------
+
+An other usual situation (#3) is having one additionnal resistor (R2) in parallele with C while charging.
+
+One can write :
+
+Ir1 = (V-Uc)/R1 and Ir2 = Uc/R2.
+
+and Ic = Ir1 - Ir2
+
+=> Uc(t+dt) = Uc(t) + [(V-Uc(t))/R1-Uc(t)/R2].dt/C
+
+=> Uc(t+dt) = Uc(t) + [(V-Uc(t)).R2 - Uc(t).R1].dt / (R1.R2.C) 
+
+=> Uc(t+dt) = Uc(t) + [(V.R2) - (Uc(t).(R2+R1)].dt / (R1.R2.C) 
+
+=> Uc(t+dt) = Uc(t) + [(V.R2)/(R1+R2) - Uc(t)].dt / (R1//R2.C)
+
+
+With (resistors in parallele) : R1//R2 = R1.R2/(R1+R2)
+
+We can write it a very generic form :
+
+=> Uc(t+dt) = Uc(t) + [Vf - Uc(t)].dt / Tau
+
+
+with :
+
+Vf the final capacitor voltage (voltage at the end of the charging step)
+and
+Tau the time constant.
+
+
+The three situations already encountered can be written this form with :
+
+#1) Vf = V and Tau = RC
+
+#2) Vf = 0 and Tau = RC
+
+#3) Vf = V.R2/(R1+R2) and Tau = R1//R2.C
+
+
+It is to note that an easy way to find Vf is to say that Ic = 0 (as if there was no capacitor) and to compute the voltage where the capacitor would be connected.
+
+In the first situation : assuming that there is no capacitor, there is no current flowing R so the voltage at one end of the resistor equal to the voltage at the other end which is V in that case.
+
+In the second situation here also there is no current through the resistor R but it is connected to ground so the final capacitor voltage is 0.
+
+In the third situation when there is no capacitor the same current flow through R1 and R2 which gives Ir1 = Ir2 = V/(R1+R2). The voltage where C should be connected is the voltage over R2 which is Vr2 = Ir2/R2 = V.R2/(R1+R2). 
+  
+In the three situations Vf has been retrieved correctly. We will use this trick to check the analytic result.
+
+Now let's go to phoenix design.
+
+
+-----------------------------------------------------------------------
+3) Phoenix Effect #1 command : (second frame in the schematic chart)
+-----------------------------------------------------------------------
+
+The command controls the TR transistor state (output of inverter buufer) which can be blocked (no current can flow thru it) or saturated (current can flow thru TR and the voltage drop between collector en emitter is Vce).
+
+When TR is bloqued (bloqué):
+----------------------------
+
+The current flow thru R1 and then one part of that current flows thru C and the other part thru D2 and R2. When current is flowing thru a diode the voltage Vd appears to it's pin. 
+
+Vf can be computed saying that C is not in the circuit : 
+
+Vf = Vd + R2.Ir2 = Vd + R2.(V-Vd)/(R1+R2) 
+Vf = [Vd.(R1+R2) + V.R2 - Vd.R2]/(R1+R2) = (Vd.R1 + V.R2)/(R1+R2)
+
+During C is charging one can write that :
+
+Ir1(t) = Ic(t)+Id2(t) = Ic(t)+Ir2(t)  and Ir2(t) = (Uc(t)-Vd)/R2
+
+Ic(t) = Ir1(t) - Ir2t() = (V-Uc(t))/R1 - (Uc(t)-Vd)/R2
+
+Ic(t) = V/R1 + Vd/R2 - Uc(t).(1/R1 + 1/R2) 
+
+Ic(t) = V/R1 + Vd/R2 - Uc(t)(R1+R2)/(R1.R2)
+
+Ic(t) = [(V/R1 + Vd/R2).(R1.R2)/(R1+R2) - Uc(t)].(R1+R2)/(R1.R2)
+
+Ic(t) = [(V.R2 + Vd.R1)/(R1+R2) - Uc(t)].(R1+R2)/(R1.R2)
+
+So :
+Uc(t+dt) = Uc(t) + [(V.R2 + Vd.R1)/(R1+R2) - Uc(t)].dt/((R1//R2).C)
+
+Which can be written in the generic form with :
+
+Vf = (V.R2 + Vd.R1)/(R1+R2) and Tau = (R1//R2).C
+
+
+When TR is saturated (saturé):
+------------------------------
+
+The current flow thru R1 and then one part of that current flows thru C, an other part thru D2 and R2 and a thrid part thru R3, D1 and TR. 
+
+Vf can be computed saying that C is not in the circuit by writing 3 equations : 
+
+Vf  = Vd + Ir2.R2 = Vce + Vd + Ir3.R3
+Ir1 = Ir2 + Ir3
+Ir1 = (V - Vf)/R1
+
+Ir2 = (Vf - Vd)/R2
+Ir3 = (Vf - Vce - Vd)/R3
+
+(V - Vf)/R1 = (Vf - Vd)/R2 + (Vf - Vce - Vd)/R3   
+Vf(1/R1 + 1/R2 + 1/R3) = (V/R1 + Vd/R2 + Vce/R3 + Vd/R3)
+
+Vf = (V/R1 + Vd/R2 + Vce/R3 + Vd/R3)/(1/R1 + 1/R2 + 1/R3)
+
+During C is discharging one can write that :
+
+Ir1(t) + Ic(t) = Ir2(t) + Ir3(t)
+
+Ir1(t) = (V - Uc(t))/R1
+Ir2(t) = (Uc(t) - Vd)/R2
+Ir3(t) = (Uc(t) - Vce - Vd)/R3
+
+Ic(t) = (Uc(t) - V)/R1 + (Uc(t) - Vd)/R2 + (Uc(t) - Vce - Vd)/R3
+
+Ic(t) = -(V/R1 + Vd/R2 + Vce/R3 + Vd/R3) + Uc(t)(1/R1 + 1/R2 +1/R3)
+
+Ic(t) = -[(V/R1 + Vd/R2 + Vce/R3 + Vd/R3)/(1/R1 + 1/R2 +1/R3) - Uc(t)].(1/R1 + 1/R2 +1/R3) 
+
+So :
+Uc(t+dt) = Uc(t) + [(V/R1 + Vd/R2 + Vce/R3 + Vd/R3)/(1/R1 + 1/R2 +1/R3) - Uc(t)].dt/((R1//R2//R3).C)
+
+Which can be written in the generic form with :
+
+Vf = (V/R1 + Vd/R2 + Vce/R3 + Vd/R3)/(1/R1 + 1/R2 +1/R3) and Tau = (R1//R2//R3).C
+
+------------------------------------------------------------------
+4) Phoenix Effect #2 filter : (third frame in the schematic chart)
+------------------------------------------------------------------
+
+Capacitor is used to filter the output of 2 oscillators that ouptut voltages : Vosc1 and Vosc2. This analysis is the most difficult to understand in the explanation so one can jump to §5 and come back later here. 
+
+We assume that Vosc1 or Vosc2 are signals that can be either 5V or OV. Thus we have four different cases to look at. At first one can note that when Vosc1 = 5V then R1 is in parallele with R4. So the circuit can be simplified by ignoring R1 and replacing R4 with R4b = R1//R4. In the opposite way when Vosc1 = 0V then R1 is in parallele with R5. So the circuit can be simplified by ignoring R1 and replacing R5 with R5b = R1//R5.
+
+From this point we have only 2 cases : Vosc2 = 5V or Vosc2 = 0V.
+
+Let's start with Vosc2=0V : R2 is in // with C.
+-----------------------------------------------
+
+Removing C from the circuit gives : 
+
+Vf  = R2.Ir2  {Ir2 is considered in the opposite direction w.r.t. the arrow on the schematic} 
+Ir2 = Vr5/(R2+R3)
+Vr5 = (R5//(R2+R3)).Ir4
+Ir4 = V/(R5//(R2+R3) + R4)
+
+Finaly : 
+Vf = R2.(R5//(R2+R3)).V/(R5//(R2+R3) + R4)/(R2+R3)
+Vf = V.R2.(R5//(R2+R3))/(R5//(R2+R3) + R4)/(R2+R3)
+
+
+When C is charging one can write that :
+---------------------------------------
+
+Ir3(t) = (Vr5(t) - Uc(t))/R3 
+
+Ir5(t) = Vr5(t)/R5
+
+Vr5(t) = V - Vr4 = V - R4.Ir4
+
+Ir4 = Ir5 + Ir3
+
+(V-Vr5(t))/R4 = Vr5(t)/R5 + (Vr5(t)-Uc(t))/R3
+
+Vr5(t)(1/R4 + 1/R5 + 1/R3) = V/R4 + Uc(t)/R3
+
+lets say 1/Rp = 1/R4 + 1/R5 + 1/R3   :  {Rp = R3//R4//R5}
+
+Vr5(t) = V.Rp/R4 + Uc(t).Rp/R3
+
+-----------------------
+
+Ic  = Ir3+Ir2
+
+Ir2(t) = -Uc(t)/R2  {Ir2 is considered in the direction as shown on the schematic}
+
+Ic(t) = [V.Rp/R4 + Uc(t).Rp/R3 - Uc(t)]/R3 - Uc(t)/R2
+
+Ic(t) = V.Rp/(R4.R3) + Uc(t).Rp/(R3.R3) - Uc(t)/R3 - Uc(t)/R2
+
+Ic(t) = V.Rp/(R4.R3) - Uc(t).(1/R3 + 1/R2 - Rp/(R3.R3) 
+
+Lets say 1/Rs = 1/R3 + 1/R2 - Rp/(R3.R3)
+
+Ic(t) = V.Rp/(R4.R3) - Uc(t)/Rs
+
+So :
+Uc(t+dt) = Uc(t) + ((V.Rp.Rs/(R4.R3) - Uc(t)).dt/(Rs.C)
+
+Which can be written in the generic form with :
+
+Vf = V.Rp.Rs/(R4.R3) and Tau = Rs.C
+
+{One should check if Rp.Rs/(R4.R3) = R2.(R5//(R2+R3))/(R5//(R2+R3) + R4)/(R2+R3)}
+
+
+Let's go on now with Vosc2=5V :
+-------------------------------
+
+Removing C from the circuit gives : 
+
+Vf  = V-R2.Ir2 
+Ir2 = (V-Vr5)/(R2+R3)
+Vr5 = R5.Ir5
+Ir5 = V/(R5+R4//(R2+R3))
+
+Finaly : 
+Vf = V-R2/(R2+R3).[V-R5.V/(R5+R4//(R2+R3))]
+Vf = V-R2/(R2+R3).[V.(1-R5/(R5+R4//(R2+R3))]
+Vf = V.(1-R2/(R2+R3).[1-R5/(R5+R4//(R2+R3))])
+
+----------------------------
+
+Because we do not change the current direction we can write exactly the same current equation as before which do not use R2 nor Ir2 and which leads to :
+
+Vr5(t) = V.Rp/R4 + Uc(t).Rp/R3
+
+Ic  = Ir3+Ir2 remains true but now we have : 
+
+Ir2(t) = (V-Uc(t))/R2   {we should have use this form before and say afterwards that this 'V' is 0V or 5V depending on the case}
+
+Ir3(t) = (Vr5(t)-Uc(t))/R3 
+
+Ic(t) = [V.Rp/R4 + Uc(t).Rp/R3 -Uc(t)]/R3 + V/R2 - Uc(t)/R2
+
+Ic(t) = V.[Rp/(R4.R3) + 1/R2)] - Uc(t).(1/R2 + 1/R3 - Rp/(R3.R3))
+
+Again lets say 1/Rs = 1/R2 + 1/R3 - Rp/(R3.R3)
+
+Ic(t) = V.(Rp/(R4.R3) + 1/R2) - Uc(t)/Rs
+
+So :
+Uc(t+dt) = Uc(t) + (V.(Rp.Rs/(R4.R3) + Rs/R2) - Uc(t)).dt/(Rs.C)
+
+Which can be written in the generic form with :
+
+Vf = V.(Rp.Rs/(R4.R3) + Rs/R2) and Tau = Rs.C
+
+{One should check if Rp.Rs/(R4.R3) + RS/R2 = (1-R2/(R2+R3).[1-R5/(R5+R4//(R2+R3))])}
+
+ 
+Finaly we've got :
+------------------
+
+When Vosc2 = 0V : Vf = V.(Rp.Rs/(R4.R3))         and Tau = Rs.C
+When Vosc2 = 5V : Vf = V.(Rp.Rs/(R4.R3) + Rs/R2) and Tau = Rs.C
+
+With R4 <= R4  and R5 <= R5p when Vosc1 = 0V
+and  R4 <= R4p and R5 <= R5  when Vosc1 = 5V
+
+=> Vf depend on both Vosc1 and Vosc2
+
+Moreover
+1/Rs = 1/R2 + 1/R3 - Rp/(R3.R3) doesn't depend on R4 nor R5 so it doen't depend on Vosc1
+
+But Rp depend on R4 and R5 so we should use:
+
+Rp <= R3//R4p//R5 when Vosc1 = OV 
+or
+Rp <= R3//R4//R5p when Vosc1 = 5V 
+
+But, but R4p = R4//R1 and R5p=R5//R1 
+
+so R3//R4p//R5 = R3//R4//R5p = R3//R4//R5//R1 => Rp doesn't depend finaly on Vosc1.
+
+In the generic formula (Uc(t+dt) = Uc(t) + [Vf - Uc(t)].dt / (Tau.C)) the sign of (Vf - Uc(t)) determine the direction of the current of the capacitor C. so it determine if C is actually charging or discharging. Within (vhdl) simulation one should select Vf according to Vosc1 and Vosc2, compute (Vf - Uc(t)) with the current value of Uc(t) and choose if C is actualy charging or discharging. 
+
+---------------------------------------------------------------------
+5) Phoenix Effect #3 command #1 (fourth frame in the schematic chart)
+---------------------------------------------------------------------
+
+When TR is blocked (bloqué) :
+-----------------------------
+
+The current from R1 flow thru R2 and C. As D2 is blocked the current from C flow thru D1 and R3. C is charging as long as current is flowing. This current flowing thru D1 make the Vd voltage to appears at its pins. Uc grows until Uc+Vd = V at at this time the current stop flowing. So Vf = V-Vd. 
+
+When current is flowing one can write that :
+
+Ir1(t) = Ir2(t) = Ic(t) = Id1(t) = Ir3(t) = (V-Vd-Uc(t))/(R1+R2+R3)
+
+Uc(t+dt) = Uc(t) + (V-Vd-Uc(t)).dt/((R1+R2+R3).C)
+
+Which can be written in the generic form with :
+
+Vf = V-Vd and Tau = (R1+R2+R3).C
+
+During this phase Vr3(t) = R3.Ic(t) = (V-Vd-Uc(t)).R3/(R1+R2+R3)
+Vr3(t) is the command of the next stage of Effect #3
+
+When TR is saturated (saturé) :
+-------------------------------
+
+As long as C is charged (enough) Uc voltage make the current flow thru R2, TR and D2. D1 is blocked thus there is no current flowing thru D1 nor R3. C is discharging as long as Ic is flowing. This current flowing thru D2 make the Vd voltage to appears at its pins. Uc disminish until Uc = Vce+Vd at this time the current stop flowing. So Vf = Vce+Vd. When the current is flowing one can write that :
+
+Ic(t) = Ir2(t) = Id2(t)  = (Uc-Vce-Vd)/R2
+
+Uc(t+dt) = Uc(t) - (Uc(t)-Vce-Vd).dt/(R2.C)
+
+Which can be written in the generic form with :
+
+Vf = Vce+Vd and Tau = R2.C
+
+During this phase Ir3 = 0 so Vr3(t) = R3.Ic(t) = 0.
+Vr3(t) is the command of the next stage of Effect #3
+
+--------------------------------------------------------------------
+6) Phoenix Effect #3 command #2 (fifth frame in the schematic chart)
+--------------------------------------------------------------------
+
+When TR is blocked :
+--------------------
+
+The current from R1 flow thru R2 and D1. Then one part of that current flows thru C and the other part thru R3.
+Vf can be computed saying that C is not in the circuit : Vf = R3.Ir3 = R3.(V-Vd)/(R1+R2+R3)
+
+During C is charging one can write that :
+   
+Ir1(t) = Ir2(t) = Id1(t) = Ic(t)+Ir3(t)
+
+Ir3(t) = Uc(t)/R3 
+Ir1(t) = (V-Vd-Uc(t))/(R1+R2)
+
+Ic(t) = Ir1(t)-Ir3(t) = (V-Vd-Uc(t))/(R1+R2) - Uc(t)/R3 = (V-Vd)/(R1+R2) - Uc(t)(1/(R1+R2) + 1/R3)
+
+Ic(t) = (V-Vd)/(R1+R2) - UC(t).(R1+R2+R3)/((R1+R2).R3)
+
+Ic(t) = [(V-Vd)/(R1+R2) . ((R1+R2).R3)/(R1+R2+R3) - Uc(t)].(R1+R2+R3)/((R1+R2).R3)
+ 
+Ic(t) = [(V-Vd).R3/(R1+R2+R3) - Uc(t)]/((R1+R2)//R3)
+
+So :
+Uc(t+dt) = Uc(t) + [(V-Vd).R3/(R1+R2+R3) - Uc(t)].dt/(((R1+R2)//R3).C)
+
+Which can be written in the generic form with :
+
+Vf = (V-Vd).R3/(R1+R2+R3) and Tau = ((R1+R2)//R3).C
+
+When TR is saturated :
+---------------------
+
+D1 is blocked so the current from C flow only thru R3. Removing C from the circuit we get Vf = Vr3 = 0. 
+
+One can simply write : Ic(t) = Ir3(t) = Uc(t)/R3
+
+Uc(t+dt) = Uc(t) - Uc(t).dt/(R3.C)
+
+Which can be written in the generic form with :
+
+Vf = 0 and Tau = R3.C
+
+-----------------------------------------------------------
+7) NE555 oscillator : (sixth frame in the schematic chart)
+-----------------------------------------------------------
+
+Each NE555 in the sound part of Phoenix is use as an oscillator to generate a given frequency signal. NE555 uses an external  set of 2 resistors and one capacitor to create the required frequency. NE555 control an internal transistor to charge and discharge the external capacitor. NE555 compare the capacitor voltage (Uc) with respect to one low and one high threshold to switch between charge and discharge state. When Uc reach the high threhold NE555 saturates TR and C begin to discharge. When Uc reach the low threshold NE555 blocks TR and C begin to charge again, and so on. 
+
+From the schematic one can see that C is charging thru (R1+R2) and discharging thru R2. Thus the generic equation are directly :
+
+Charge    : Vf = Vb  and Tau = (R1+R2).C
+Discharge : Vf = Vce and Tau = R2.C
+
+The oscillator signal (ouput) is the TR command toggling (flip-flop) between charging and discharging C. The resulting frequency depend not only on R1, R2 and C but also on the high and low threshold values.
+
+NE555 can use 2 kinds of thresholds:
+
+First kind of threshold is when there is no signal to Vctrl (pin 5). In that case the high threshold is VCC.2/3 and the low threshold is VCC.1/3. NE555 use an internal R-R-R network to produce these thresholds. In this case the generated frequency is fixed  as long as R1, R2 and C and fixed.  
+ 
+Second kind of threshold is when there is a signal on Vctrl (pin 5). In that case the high threshold is Vctrl and the low threshold is Vctrl/2. In that case the frequency can be varied by varying Vctrl. NE555 acts as a VCO (Voltage Control Oscillator). When Vtcrl is low the difference between the high and low thresholds is small, the capcitor voltage reaches the threshold rapidly, the produced frequency is high. Vhen Vctrl is high the difference between the high and low thresholds is large, the capacitor voltage takes more times to reach the threshold, the produced frequency is low. 
+
+-------------------------------
+8) Phoenix Effect #1 Oscillator
+-------------------------------
+
+NE555 (IC48) is used as a VCO with R25, R26 and C8. The command signal uses R23,R24, R22 and C7 to control the VCO through a voltage buffer (op amplifier) allowing not to disturbe the capacitor charge/discharge behavior. The command voltage which is C7 voltage swept the Osc frequency. 
+
+The NE555 frequency is then divided by a software control LS163 counter and a LS74 flip-flop. An additional filter may be activated under sofware control.   
+
+-------------------------------
+9) Phoenix Effect #2 Oscillators
+-------------------------------
+Effect #2 uses three oscillators.
+
+First NE555 oscillator Osc1 (IC44, R40, R41, C16, C17, C18) can generate 4 different fixed frequencies since 2 capacitors can be put in/out of circuit depending on bit 4 and 5 of sofware control register. So we can have in cicuit C18 alone or C18//C16 or C18//17 or 'maybe' C18//C16//C17.
+
+Second NE555 oscillator Osc2 (IC51, R23, R24 C20) generate a single frequency.
+
+The output of Osc1/Osc2 is filtered (R42, R45, R46, C22, see corresponding §) and the filter output controls the Osc3 VCO (IC50, R47, R48, C23) frequency without voltage buffer so the NE555 input resistor circuit has to be taken into account (R4 and R5 in the explanation text).
+
+The Osc3 frequency is then divided by a software control LS163 counter and a LS74 flip-flop. An additional level control is activated under sofware control (bit 5). 
+
+-------------------------------
+10) Phoenix Effect #3 Oscillator
+-------------------------------
+
+NE555 IC42 is in a 'usually' fixed frequency configuration but it controled a special way. Oscillator of effect #3 can see it's R1 resistor varied by progressively putting R71 in // with R73 thus the frequency will change with respect to R1 change from R73 to R73//R71. 
+
+This control is made by the voltage combination of the voltage buffered command1 and command2 (see corresponding §). Both command voltages are summed together through a R-R network giving (Vcommand1+Vcommand2)/2. This operation is followed by an third operationnal amplifier which buffers and multiplies the signal by 2 and then control TR1 which put R71 in // over R73. It's assumed that we go in a linear way from R73 to R73//R71 with respect to (Vcommand1+Vcommand2). MAME documentation proposed this simplification and I agree that it is a good approximation, it is not so easy to know how it actually was and that it merely do not change sound in a great manner. Another question is : does Vcommand1 and Vcommand2 can be activated at the same time and should the sum be limited to 5V (related to the operationnal amplifier power supply voltage). In my opinion there are not activated at the same time.
+
+The output frequency of the oscillator is then used to trigger a pseudo random generator based on a 18 bits shift register (IC46) looped back using 2 own bits combined thru a xor gate. The output of the generator (also the xor gate output) is used to chop the buffered voltage command1 and command2. Chopped command1 is simply scaled by 1/2 and then buffered. Chopped command2 feed a 400Hz filter (not described here, see MAME documentation).   
+
+-------------------------------
+11) VHDL implementation
+-------------------------------
+
+Now we have to do it for vhdl. Not so difficult there is only one equation : Uc(t+dt) = Uc(t) + (Vf-Uc(t)).dt/Tau.
+
+With a digital design Uc update has to be discretized.
+
+with a constant time update rate (dt) we get : Uc(n+1) = Uc(n) + (Vf-Uc(n)).dt/Tau.
+or 
+with a constant value update we get : Uc(n+1) = Uc(n) + 1 every dt = Tau/(Vf-Uc(n)).
+
+With a fast floating point unit  (FPU) there is no big problem but without FPU the computation has to be quantized. In both cases the problem is to compute the ratio with the large dynamique of Tau ranging from 0.5s to 0.00002s or/and the small value of dt (10-3 or even less).
+
+Constant time update rate seems to be easier because one can compute dt/Tau off line and only have to do one multiplication during  run time. As dt is produced by dividing a master clock Fs by a factor k, we can write dt = k/Fs. 
+
+Another trick is to let dt/Tau = 1/2^n. Because dividing by a power of 2 in the binary world is free (just leaving some bits away)
+
+This gives : k/(Fs.Tau) = 1/2^n => k = Fs.Tau/2^n.
+
+k is computed off line. We have to choose Fs and n in order respect some constraints :
+
+k should not be too small because by definition k is an integer. Actually k = round(Fs.Tau/2^n) this approximation leads to a charging/discharging duration error. If k is greater than 10 the error is less than 10%. If k is greater than 100 the errror is less than 1%.
+
+k should not be too large because the more k is large the more the divider counter is large.
+
+n should not be too small because it control the voltage step, remind that Uc(n+1) = Uc(n) + (Vf-Uc(n))/2^n
+
+Fs should not be to big to be handle by the FPGA speed grade, remind that we can have to make large dividers.
+
+You can retreive all the computation for any part of sound effect of Phoenix game within the computation sheet.
+
+All cases have been covered with 
+	
+- 2 clocks : 50Mhz and 10Mhz.
+- 3 possibility for n : 6, 7 and 8.
+
+and k ranges from 16 to 39844
+
+The voltage from 0 to 5V have been represented on 16bits positive only integer : LSB q=5/2^16
+
+---------------------------------
+VHDL Exemple for Effect# command1
+---------------------------------
+
+...
+ 
+signal u_c1  : unsigned(15 downto 0) := (others => '0'); -- capacitor voltage
+
+
+-- Effect#3 Commande1
+-- R1 = 1k, R2 = 0.33k, R3 = 20k C=6.8e-6 SR=10MHz
+-- Charge   : Vf1 = 59507, k1 = 5666 (R1+R2+R3)
+-- Decharge : Vf2 =  8651, k2 =   88 (R2)
+-- Div = 2^8 = 256
+
+process (clk10)
+  variable cnt : unsigned(15 downto 0) := (others => '0'); -- counter for k divider
+begin
+  if rising_edge(clk10) then
+    if reset = '1' then
+      cnt  := (others => '0');
+      u_c1 <= (others => '0');
+    else
+      cnt  := cnt + 1;
+      if trigger1 = '1' then
+        if cnt > 5666 then
+          cnt := (others => '0');
+          u_c1 <= u_c1 + (59507 - u_c1)/256;
+        end if;
+      else
+        if cnt > 88 then
+          cnt := (others => '0');
+          u_c1 <= u_c1 - (u_c1 - 8651)/256; 
+        end if;	
+     end if;
+   end if;
+ end if;
+end process;
+ 
+---------------------
+
+Trigger 1 is the software command to start/stop the effect. In many case that command controls the charging or discharging state of the capacitor. In the vhdl code it allow to select the corresponding Vf and k parameters. It also allow to select the equation for charging 'Uc = Uc + du' or discharging 'Uc = Uc - du' with du having a positive value in both equation.
+
+
+For NE555 oscillator charging/discharging state of the capacitor is controlled by the flip-flop TR command.
+
+For the Effect#2 filter the charging/discharging state is selected from the (Vf-Uc) results.
+
+
+
+
+
+
+
+
+ 
+ 
+
+
+
+
+
+
+
+
+ 
+
+
+
