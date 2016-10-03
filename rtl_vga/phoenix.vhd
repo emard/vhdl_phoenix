@@ -167,9 +167,9 @@ G_vga: if C_vga generate
   process(clk_pixel)
   begin
     if rising_edge(clk_pixel) then
-	     hclk <= not hclk;
-		  hclk_n <= not hclk;
-	 end if;
+      hclk <= not hclk;
+      hclk_n <= not hclk;
+    end if;
   end process;
 
   -- VGA video generator - pixel clock synchronous
