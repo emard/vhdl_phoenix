@@ -35,41 +35,8 @@ use ieee.numeric_std.all;
 entity phoenix_scarab is
 port(
  clk_50mhz  : in std_logic;
--- clock_27  : in std_logic;
--- ext_clock : in std_logic;
--- ledr      : out std_logic_vector(17 downto 0);
--- ledg      : out std_logic_vector(8 downto 0);
  portd     : in std_logic_vector(3 downto 0);
  sw        : in std_logic_vector(4 downto 1);
-
--- dram_ba_0  : out std_logic;
--- dram_ba_1  : out std_logic;
--- dram_ldqm  : out std_logic;
--- dram_udqm  : out std_logic;
--- dram_ras_n : out std_logic;
--- dram_cas_n : out std_logic;
--- dram_cke   : out std_logic;
--- dram_clk   : out std_logic;
--- dram_we_n  : out std_logic;
--- dram_cs_n  : out std_logic;
--- dram_dq    : inout std_logic_vector(15 downto 0);
--- dram_addr  : out std_logic_vector(11 downto 0);
---
--- fl_addr  : out std_logic_vector(21 downto 0);
--- fl_ce_n  : out std_logic;
--- fl_oe_n  : out std_logic;
--- fl_dq    : inout std_logic_vector(7 downto 0);
--- fl_rst_n : out std_logic;
--- fl_we_n  : out std_logic;
---
--- hex0 : out std_logic_vector(6 downto 0);
--- hex1 : out std_logic_vector(6 downto 0);
--- hex2 : out std_logic_vector(6 downto 0);
--- hex3 : out std_logic_vector(6 downto 0);
--- hex4 : out std_logic_vector(6 downto 0);
--- hex5 : out std_logic_vector(6 downto 0);
--- hex6 : out std_logic_vector(6 downto 0);
--- hex7 : out std_logic_vector(6 downto 0);
 
 -- ps2_clk : in std_logic;
 -- ps2_dat : inout std_logic;
@@ -84,38 +51,10 @@ port(
 -- lcd_on   : out std_logic;
 -- lcd_blon : out std_logic;
  
--- sram_addr : out std_logic_vector(17 downto 0);
--- sram_dq   : inout std_logic_vector(15 downto 0);
--- sram_we_n : out std_logic;
--- sram_oe_n : out std_logic;
--- sram_ub_n : out std_logic;
--- sram_lb_n : out std_logic;
--- sram_ce_n : out std_logic;
- 
--- otg_addr   : out std_logic_vector(1 downto 0);
--- otg_cs_n   : out std_logic;
--- otg_rd_n   : out std_logic;
--- otg_wr_n   : out std_logic;
--- otg_rst_n  : out std_logic;
--- otg_data   : inout std_logic_vector(15 downto 0);
--- otg_int0   : in std_logic;
--- otg_int1   : in std_logic;
--- otg_dack0_n: out std_logic;
--- otg_dack1_n: out std_logic;
--- otg_dreq0  : in std_logic;
--- otg_dreq1  : in std_logic;
--- otg_fspeed : inout std_logic;
--- otg_lspeed : inout std_logic;
--- 
--- tdi : in std_logic;
--- tcs : in std_logic;
--- tck : in std_logic;
--- tdo : out std_logic;
-
     -- warning TMDS_in is used as output
-    TMDS_in_P, TMDS_in_N: out std_logic_vector(2 downto 0);
-    TMDS_in_CLK_P, TMDS_in_CLK_N: out std_logic;
-    FPGA_SDA, FPGA_SCL: inout std_logic; -- i2c on TMDS_in
+--    TMDS_in_P, TMDS_in_N: out std_logic_vector(2 downto 0);
+--    TMDS_in_CLK_P, TMDS_in_CLK_N: out std_logic;
+--    FPGA_SDA, FPGA_SCL: inout std_logic; -- i2c on TMDS_in
     TMDS_out_P, TMDS_out_N: out std_logic_vector(2 downto 0);
     TMDS_out_CLK_P, TMDS_out_CLK_N: out std_logic;
  
@@ -129,42 +68,6 @@ port(
  vga_sync  : out std_logic;
  
  leds      : out std_logic_vector(7 downto 0)
-
- --i2c_sclk : out std_logic;
- --i2c_sdat : inout std_logic;
- 
--- td_clk27 : in std_logic;
--- td_reset : out std_logic;
--- td_data  : in std_logic_vector(7 downto 0);
--- td_hs    : in std_logic;
--- td_vs    : in std_logic;
-
- --aud_adclrck : out std_logic;
- --aud_adcdat  : in std_logic;
- --aud_daclrck : out std_logic;
- --aud_dacdat  : out std_logic;
- --aud_xck     : out std_logic;
- --aud_bclk    : out std_logic
- 
--- enet_data  : inout std_logic_vector(15 downto 0);
--- enet_clk   : out std_logic;
--- enet_cmd   : out std_logic;
--- enet_cs_n  : out std_logic;
--- enet_int   : in std_logic;
--- enet_rd_n  : out std_logic;
--- enet_wr_n  : out std_logic;
--- enet_rst_n : out std_logic;
--- 
--- irda_txd : out std_logic;
--- irda_rxd : in std_logic;
--- 
--- sd_dat  : inout std_logic;
--- sd_dat3 : out std_logic;
--- sd_cmd  : out std_logic;
--- sd_clk  : out std_logic;
--- 
--- gpio_0  : inout std_logic_vector(35 downto 0)
--- gpio_1  : inout std_logic_vector(35 downto 0)
 );
 end phoenix_scarab;
 
@@ -298,16 +201,16 @@ begin
     tmds_out_rgb_n => tmds_out_n
   );
 
-  hdmi_output2: entity work.hdmi_out
-  port map
-  (
-    tmds_in_clk    => dvid_clock(0), -- clk_25MHz or tmds_clk
-    tmds_out_clk_p => tmds_in_clk_p,
-    tmds_out_clk_n => tmds_in_clk_n,
-    tmds_in_rgb    => dvid_red(0) & dvid_green(0) & dvid_blue(0),
-    tmds_out_rgb_p => tmds_in_p,
-    tmds_out_rgb_n => tmds_in_n
-  );
+--  hdmi_output2: entity work.hdmi_out
+--  port map
+--  (
+--    tmds_in_clk    => dvid_clock(0), -- clk_25MHz or tmds_clk
+--    tmds_out_clk_p => tmds_in_clk_p,
+--    tmds_out_clk_n => tmds_in_clk_n,
+--    tmds_in_rgb    => dvid_red(0) & dvid_green(0) & dvid_blue(0),
+--    tmds_out_rgb_p => tmds_in_p,
+--    tmds_out_rgb_n => tmds_in_n
+--  );
 
 -- synchro composite/ synchro horizontale
 -- vga_hs <= csync when tv15Khz_mode = '1' else hsync;
