@@ -35,7 +35,7 @@ use ieee.numeric_std.all;
 entity phoenix_ulx2s is
 generic
 (
-  C_clock_blinky: boolean := true
+  C_clock_blinky: boolean := false
 );
 port(
     clk_25m: in std_logic;
