@@ -8,6 +8,11 @@ Do not redistribute roms whatever the form
 Use at your own risk
 
 -------------------------------------------------
+Update 2016 Oct 03:
+
+Output to HDMI with VGA resolution 640x480 60Hz
+
+-------------------------------------------------
 Update 2016 April 18 : Note
 
 make sure to use phoenix.zip roms 
