@@ -212,7 +212,7 @@ cpu8085 : entity work.T8080se
  generic map(Mode => 2, T2Write => 0)
 port map(
  RESET_n => reset_n,
- CLK     => hclk_n,
+ CLK     => clk_pixel,
  CLKEN  => '1',
  READY  => rdy,
  HOLD  => '1',
@@ -246,9 +246,9 @@ bkgnd_ram_adr <= player2 & cpu_adr(9 downto 0) when adrsel ='0' else player2 & v
 
 -- demux cpu data to registers : background scrolling, sound control,
 -- player id (1/2), palette color set. 
-process (hclk)
+process (clk_pixel)
 begin
- if rising_edge(hclk) then
+ if rising_edge(clk_pixel) then
   if cpu_wr_n = '0' then
    case cpu_adr(14 downto 10) is
     when "10110" => bkgnd_offset <= cpu_do;
@@ -283,9 +283,9 @@ bkgnd_graph_adr <= bkgnd_tile_id & vert_cnt(2 downto 0);
 
 -- latch foreground/background next graphix byte, high bit and low bit
 -- and palette_ids (fr_lin, bklin)
-process (hclk)
+process (clk_pixel)
 begin
- if rising_edge(hclk) then
+ if rising_edge(clk_pixel) then
   if (pl2_cocktail = '0' and (frgnd_horz_cnt(2 downto 0) = "111")) or
      (pl2_cocktail = '1' and (frgnd_horz_cnt(2 downto 0) = "000")) then
      frgnd_bit0_graph_r <= frgnd_bit0_graph;
@@ -376,7 +376,7 @@ port map(
 -- Program PROM
 prog : entity work.phoenix_prog
 port map(
- clk  => hclk,
+ clk  => clk_pixel,
  addr => cpu_adr(13 downto 0),
  data => prog_do
 );
@@ -386,7 +386,7 @@ port map(
 frgnd_ram : entity work.gen_ram
 generic map( dWidth => 8, aWidth => 11)
 port map(
- clk  => hclk,
+ clk  => clk_pixel,
  we   => frgnd_ram_we,
  addr => frgnd_ram_adr,
  d    => cpu_do,
@@ -399,7 +399,7 @@ port map(
 bkgnd_ram : entity work.gen_ram
 generic map( dWidth => 8, aWidth => 11)
 port map(
- clk  => hclk,
+ clk  => clk_pixel,
  we   => bkgnd_ram_we,
  addr => bkgnd_ram_adr,
  d    => cpu_do,
