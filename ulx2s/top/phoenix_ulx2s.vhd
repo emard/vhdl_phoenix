@@ -62,7 +62,7 @@ port(
 end;
 
 architecture struct of phoenix_ulx2s is
-  signal clk_pixel, clk_pixel_shift  : std_logic;
+  signal clk_pixel, clk_pixel_shift, clk_stable: std_logic;
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
@@ -76,7 +76,7 @@ architecture struct of phoenix_ulx2s is
   signal R_blinky: std_logic_vector(25 downto 0);
   signal R_blinky_shift: std_logic_vector(28 downto 0);
 begin
-  reset <= '0';
+  reset <= not clk_stable;
   dip_switch(3 downto 0) <= sw(3 downto 0);
 
   clk_25_250_25MHz: entity work.clk_25_250_25
@@ -84,7 +84,8 @@ begin
   (
     CLK => clk_25m, -- 25 MHz input
     CLKOP => clk_pixel_shift, -- 250 MHz
-    CLKOK => clk_pixel -- 25 MHz
+    CLKOK => clk_pixel, -- 25 MHz
+    LOCK => clk_stable
   );
 
   G_clock_blinky: if C_clock_blinky generate

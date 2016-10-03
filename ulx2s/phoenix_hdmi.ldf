@@ -54,13 +54,7 @@
         <Source name="../rtl_T80/T80.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../rtl_T80/T80a.vhd" type="VHDL" type_short="VHDL">
-            <Options/>
-        </Source>
         <Source name="../rtl_T80/T80s.vhd" type="VHDL" type_short="VHDL">
-            <Options/>
-        </Source>
-        <Source name="../rtl_T80/T80se.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
         <Source name="../rtl_T80/T8080se.vhd" type="VHDL" type_short="VHDL">
