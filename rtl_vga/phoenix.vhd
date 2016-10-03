@@ -15,10 +15,12 @@ generic (
 port(
  clk_pixel    : in std_logic; -- 11 MHz for TV, 25 MHz for VGA
  reset        : in std_logic;
--- tv15Khz_mode : in std_logic;
+
  dip_switch   : in std_logic_vector(7 downto 0);
- ps2_clk      : in std_logic;
- ps2_dat      : in std_logic;
+ -- game controls, normal logic '1':pressed, '0':released
+ btn_coin: in std_logic;
+ btn_player_start: in std_logic_vector(1 downto 0);
+ btn_fire, btn_left, btn_right, btn_barrier: in std_logic;
 
  vga_r, vga_g, vga_b: out std_logic_vector(1 downto 0);
  vga_hsync, vga_vsync, vga_blank, vga_vblank: out std_logic;
@@ -115,15 +117,19 @@ architecture struct of phoenix is
  signal song  : std_logic_vector( 7 downto 0) := (others =>'0');
  signal mixed : std_logic_vector(11 downto 0) := (others =>'0');
  signal sound_string : std_logic_vector(31 downto 0);
- 
- signal kbd_intr      : std_logic;
- signal kbd_scancode  : std_logic_vector(7 downto 0);
- signal JoyPCFRLDU    : std_logic_vector(7 downto 0);
 
  signal coin         : std_logic;
  signal player_start : std_logic_vector(1 downto 0);
  signal buttons      : std_logic_vector(3 downto 0);
 begin
+
+-- game core uses inverted control logic
+coin <= not btn_coin; -- insert coin
+player_start <= not btn_player_start; -- select 1 or 2 players
+buttons(0) <= not btn_fire; -- Fire
+buttons(1) <= not btn_right; -- Right
+buttons(2) <= not btn_left; -- Left
+buttons(3) <= not btn_barrier; -- Protection 
 
 -- video address/sync generator
 G_tv: if not C_vga generate
@@ -213,7 +219,7 @@ cpu8085 : entity work.T8080se
 port map(
  RESET_n => reset_n,
  CLK     => clk_pixel,
- CLKEN  => '1',
+ CLKEN  => '1', -- fixme: use it to make 5.5 MHz clock average
  READY  => rdy,
  HOLD  => '1',
  INT   => '1',
@@ -465,33 +471,5 @@ port map(
  --        "00"   & snd3  & "00"        when "110",
   --       "00"  &  song  & "00"        when "111",
    --               mixed               when others;
-
--- get scancode from keyboard
-keybord : entity work.io_ps2_keyboard
-port map (
-  clk       => clk_pixel,
-  kbd_clk   => ps2_clk,
-  kbd_dat   => ps2_dat,
-  interrupt => kbd_intr,
-  scancode  => kbd_scancode
-);
-
--- translate scancode to joystick
-Joystick : entity work.kbd_joystick
-port map (
-  clk         => clk_pixel,
-  kbdint      => kbd_intr,
-  kbdscancode => std_logic_vector(kbd_scancode), 
-  JoyPCFRLDU  => JoyPCFRLDU 
-);
-
--- joystick to inputs
-coin            <= not JoyPCFRLDU(7); -- F3 : Add coin
-player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
-player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
-buttons(0)      <= not JoyPCFRLDU(4); -- SPACE : Fire
-buttons(1)      <= not JoyPCFRLDU(3); -- RIGHT arrow : Right
-buttons(2)      <= not JoyPCFRLDU(2); -- LEFT arrow  : Left
-buttons(3)      <= not JoyPCFRLDU(0); -- UP arrow : Protection 
 
 end struct;

@@ -35,6 +35,7 @@ use ieee.numeric_std.all;
 entity phoenix_ulx2s is
 generic
 (
+  C_ps2_keyboard: boolean := false;
   C_clock_blinky: boolean := false
 );
 port(
@@ -72,13 +73,15 @@ architecture struct of phoenix_ulx2s is
   
   signal reset        : std_logic;
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
+
+  signal kbd_intr      : std_logic;
+  signal kbd_scancode  : std_logic_vector(7 downto 0);
+  signal JoyPCFRLDU    : std_logic_vector(7 downto 0);
+
   -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
   signal R_blinky: std_logic_vector(25 downto 0);
   signal R_blinky_shift: std_logic_vector(28 downto 0);
 begin
-  reset <= not clk_stable;
-  dip_switch(3 downto 0) <= sw(3 downto 0);
-
   clk_25_250_25MHz: entity work.clk_25_250_25
   port map
   (
@@ -87,6 +90,41 @@ begin
     CLKOK => clk_pixel, -- 25 MHz
     LOCK => clk_stable
   );
+
+  reset <= not clk_stable;
+  dip_switch(3 downto 0) <= sw(3 downto 0);
+  
+  G_ps2_keyboard: if C_ps2_keyboard generate
+    -- get scancode from keyboard
+    keybord: entity work.io_ps2_keyboard
+    port map
+    (
+      clk       => clk_pixel,
+      kbd_clk   => j1_2,
+      kbd_dat   => j1_3,
+      interrupt => kbd_intr,
+      scancode  => kbd_scancode
+    );
+
+    -- translate scancode to joystick
+    Joystick: entity work.kbd_joystick
+    port map
+    (
+      clk         => clk_pixel,
+      kbdint      => kbd_intr,
+      kbdscancode => std_logic_vector(kbd_scancode), 
+      JoyPCFRLDU  => JoyPCFRLDU 
+    );
+
+    -- joystick to inputs
+    --coin            <= not JoyPCFRLDU(7); -- F3 : Add coin
+    --player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
+    --player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
+    --buttons(0)      <= not JoyPCFRLDU(4); -- SPACE : Fire
+    --buttons(1)      <= not JoyPCFRLDU(3); -- RIGHT arrow : Right
+    --buttons(2)      <= not JoyPCFRLDU(2); -- LEFT arrow  : Left
+    --buttons(3)      <= not JoyPCFRLDU(0); -- UP arrow : Protection 
+  end generate;
 
   G_clock_blinky: if C_clock_blinky generate
     process(clk_pixel)
@@ -114,8 +152,13 @@ begin
     clk_pixel    => clk_pixel,
     reset        => reset,
     dip_switch   => dip_switch,
-    ps2_clk      => j1_2, -- ps2_clk,
-    ps2_dat      => j1_3, -- ps2_dat,
+    btn_coin     => btn_center,
+    btn_player_start(0) => btn_up,
+    btn_player_start(1) => '0',
+    btn_fire     => btn_up,
+    btn_left     => btn_left,
+    btn_right    => btn_right,
+    btn_barrier  => btn_down,
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
