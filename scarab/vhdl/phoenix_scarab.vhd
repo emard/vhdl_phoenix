@@ -34,82 +34,51 @@ use ieee.numeric_std.all;
 
 entity phoenix_scarab is
 port(
- clk_50mhz  : in std_logic;
- portd     : in std_logic_vector(3 downto 0);
- sw        : in std_logic_vector(4 downto 1);
+  clk_50mhz: in std_logic;
+  porta: in std_logic_vector(6 downto 0);
+  sw: in std_logic_vector(4 downto 1);
 
--- ps2_clk : in std_logic;
--- ps2_dat : inout std_logic;
-
--- uart_txd : out std_logic;
--- uart_rxd : in std_logic;
---
--- lcd_rw   : out std_logic;
--- lcd_en   : out std_logic;
--- lcd_rs   : out std_logic;
--- lcd_data : out std_logic_vector(7 downto 0);
--- lcd_on   : out std_logic;
--- lcd_blon : out std_logic;
+  -- warning TMDS_in is used as output
+  -- TMDS_in_P, TMDS_in_N: out std_logic_vector(2 downto 0);
+  -- TMDS_in_CLK_P, TMDS_in_CLK_N: out std_logic;
+  -- FPGA_SDA, FPGA_SCL: inout std_logic; -- i2c on TMDS_in
+  TMDS_out_P, TMDS_out_N: out std_logic_vector(2 downto 0);
+  TMDS_out_CLK_P, TMDS_out_CLK_N: out std_logic;
  
-    -- warning TMDS_in is used as output
---    TMDS_in_P, TMDS_in_N: out std_logic_vector(2 downto 0);
---    TMDS_in_CLK_P, TMDS_in_CLK_N: out std_logic;
---    FPGA_SDA, FPGA_SCL: inout std_logic; -- i2c on TMDS_in
-    TMDS_out_P, TMDS_out_N: out std_logic_vector(2 downto 0);
-    TMDS_out_CLK_P, TMDS_out_CLK_N: out std_logic;
- 
- vga_r     : out std_logic_vector(2 downto 0);
- vga_g     : out std_logic_vector(2 downto 0);
- vga_b     : out std_logic_vector(1 downto 0);
- vga_clk   : out std_logic;
- vga_blank : out std_logic;
- vga_hs    : out std_logic;
- vga_vs    : out std_logic;
- vga_sync  : out std_logic;
- 
- leds      : out std_logic_vector(7 downto 0)
+  leds      : out std_logic_vector(7 downto 0)
 );
 end phoenix_scarab;
 
 architecture struct of phoenix_scarab is
-  signal clk_11m  : std_logic;
-  signal clk_25m  : std_logic;
-  signal clk_50m  : std_logic;
-  signal clk_250m : std_logic;
+  signal clk_pixel, clk_pixel_shift: std_logic;
  
-  signal r         : std_logic_vector(1 downto 0);
-  signal g         : std_logic_vector(1 downto 0);
-  signal b         : std_logic_vector(1 downto 0);
-  signal video_clk : std_logic;
-  signal csync, vblank, hblank_fg, hblank_bg: std_logic;
-  signal hsync, vsync, blank: std_logic;
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
-  
   -- signal audio        : std_logic_vector(11 downto 0);
   -- signal sound_string : std_logic_vector(31 downto 0);
+
   signal reset        : std_logic;
+  signal clock_stable : std_logic;
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
   -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
 begin
-
-  reset <= sw(1);
-  dip_switch(3 downto 0) <= sw(4 downto 1);
-
   clk_50_50_250_25_11MHz : entity work.clk_50_50_250_25_11MHz
   port map
   (
     reset => '0',
-    locked => open,
+    locked => clock_stable,
     CLK_50M_IN  => clk_50MHz,
-    CLK_50M => clk_50m,
-    CLK_11M => clk_11m,
-    CLK_250M => clk_250m,
-    CLK_25M => clk_25m
+    CLK_50M => open,
+    CLK_11M => open,
+    CLK_250M => clk_pixel_shift,
+    CLK_25M => clk_pixel
   );
+  
+  reset <= not clock_stable;
+  dip_switch(3 downto 0) <= sw(4 downto 1);
 
   phoenix : entity work.phoenix
   generic map
@@ -118,50 +87,36 @@ begin
   )
   port map
   (
-    clk_pixel    => clk_25m,
+    clk_pixel    => clk_pixel,
     reset        => reset,
     dip_switch   => dip_switch,
-    ps2_clk      => portd(0), -- ps2_clk,
-    ps2_dat      => portd(1), -- ps2_dat,
+    btn_coin     => not porta(0),
+    btn_player_start(0) => not porta(1),
+    btn_player_start(1) => not porta(2),
+    btn_left     => not porta(3),
+    btn_right    => not porta(4),
+    btn_barrier  => not porta(5),
+    btn_fire     => not porta(6),
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
     vga_hsync    => S_vga_hsync,
     vga_vsync    => S_vga_vsync,
-    vga_blank    => S_vga_blank,
-    video_r      => r,
-    video_g      => g,
-    video_b      => b,
-    video_clk    => video_clk,
-    video_csync  => csync,
-    video_vblank => vblank,
-    video_hblank_fg => hblank_fg,
-    video_hblank_bg => hblank_bg,
-    video_hs     => hsync,
-    video_vs     => vsync
+    vga_blank    => S_vga_blank
     -- audio_select => audio_select,
     -- audio        => audio
     -- adr_cpu_out  => adr_cpu,
     -- do_prog      => sram_dq(7 downto 0)
   );
-  blank <= vblank or hblank_fg or hblank_bg;
-
-  vga_hs    <= hsync;
-  vga_vs    <= vsync;
-
-  vga_r <= r & r(0);
-  vga_g <= g & g(0);
-  vga_b <= b;
-
   -- some debugging with LEDs
-  leds(0) <= not hsync;
-  leds(1) <= not vsync;
-  leds(2) <= not csync;
-  leds(3) <= vblank;
-  leds(4) <= blank;
-  leds(5) <= r(1); -- when game works, changing color on
-  leds(6) <= g(1); -- large area of the screen should
-  leds(7) <= b(1); -- also be "visible" on RGB indicator LEDs
+  leds(0) <= not porta(0);
+  leds(1) <= (not porta(1)) or (not porta(2));
+  leds(2) <= not porta(3);
+  leds(3) <= not porta(4);
+  leds(4) <= (not porta(5)) or (not porta(6));
+  leds(5) <= S_vga_r(1); -- when game works, changing color on
+  leds(6) <= S_vga_g(1); -- large area of the screen should
+  leds(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
 
   vga2dvi_converter: entity work.vga2dvid
   generic map
@@ -171,8 +126,8 @@ begin
   )
   port map
   (
-      clk_pixel => clk_25m, -- clk_25m
-      clk_shift => clk_250m,
+      clk_pixel => clk_pixel, -- 25 MHz
+      clk_shift => clk_pixel_shift, -- 250 MHz
 
       in_red   => S_vga_r,
       in_green => S_vga_g,
