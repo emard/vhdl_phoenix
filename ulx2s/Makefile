@@ -8,6 +8,8 @@ DIAMOND_BASE := /usr/local/diamond
 DIAMOND_BIN :=  $(shell find ${DIAMOND_BASE}/ -maxdepth 2 -name bin | sort -rn | head -1)
 DIAMONDC := $(shell find ${DIAMOND_BIN}/ -name diamondc)
 
+JUNK = ulx2s_sram1.sty project_tcr.dir
+JUNK += ._Real_._Math_.vhd .run_manager.ini
 
 all:
 	@rm -rf ${IMPL_DIR}
@@ -15,7 +17,7 @@ all:
 	# @fgrep Warning: ${IMPL_DIR}/*.twr
 
 clean:
-	rm -rf ${IMPL_DIR} *~
+	rm -rf ${IMPL_DIR} ${JUNK} *~
 
 program:
 	ujprog ${IMPL_DIR}/${PROJ_NAME}_${IMPL_NAME}.jed

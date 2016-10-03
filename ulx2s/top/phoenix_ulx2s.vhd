@@ -33,6 +33,10 @@ use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
 
 entity phoenix_ulx2s is
+generic
+(
+  C_clock_blinky: boolean := true
+);
 port(
     clk_25m: in std_logic;
     rs232_tx: out std_logic;
@@ -70,25 +74,34 @@ architecture struct of phoenix_ulx2s is
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
   -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
   signal R_blinky: std_logic_vector(25 downto 0);
+  signal R_blinky_shift: std_logic_vector(28 downto 0);
 begin
   reset <= '0';
   dip_switch(3 downto 0) <= sw(3 downto 0);
 
-  --clk_25_250_25MHz: entity work.clk_25_250_25MHz
-  --port map
-  --(
-  --  CLK => clk_25m, -- 25 MHz input
-  --  CLKOP => clk_pixel_shift, -- 250 MHz
-  --  CLKOK => clk_pixel -- 25 MHz
-  --);
-  clk_pixel <= clk_25m;
-  
-  process(clk_pixel)
-  begin
-    if rising_edge(clk_pixel) then
-      R_blinky <= R_blinky+1;
-    end if;
-  end process;
+  clk_25_250_25MHz: entity work.clk_25_250_25
+  port map
+  (
+    CLK => clk_25m, -- 25 MHz input
+    CLKOP => clk_pixel_shift, -- 250 MHz
+    CLKOK => clk_pixel -- 25 MHz
+  );
+
+  G_clock_blinky: if C_clock_blinky generate
+    process(clk_pixel)
+    begin
+      if rising_edge(clk_pixel) then
+        R_blinky <= R_blinky + 1;
+      end if;
+    end process;
+
+    process(clk_pixel_shift)
+    begin
+      if rising_edge(clk_pixel_shift) then
+        R_blinky_shift <= R_blinky_shift + 1;
+      end if;
+    end process;
+  end generate;
 
   phoenix: entity work.phoenix
   generic map
@@ -112,7 +125,7 @@ begin
 
   -- some debugging with LEDs
   led(0) <= R_blinky(R_blinky'high);
-  --led(1) <= not vsync;
+  led(1) <= R_blinky_shift(R_blinky_shift'high);
   --led(2) <= not csync;
   --led(3) <= vblank;
   --led(4) <= blank;
@@ -135,9 +148,9 @@ begin
       in_green => S_vga_g,
       in_blue  => S_vga_b,
 
-      in_blank => S_vga_blank,
       in_hsync => S_vga_hsync,
       in_vsync => S_vga_vsync,
+      in_blank => S_vga_blank,
 
       -- single-ended output ready for differential buffers
       out_red   => dvid_red,
