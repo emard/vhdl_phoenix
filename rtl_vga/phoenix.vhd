@@ -10,7 +10,10 @@ use ieee.numeric_std.all;
 
 entity phoenix is
 generic (
+  C_test_picture: boolean := false;
   C_tile_rom: boolean := true; -- false: disable tile ROM to try game logic on small FPGA
+  -- reduce ROMs: 14 is normal game, 13 will draw initial screen, 12 will repeatedly blink 1 line of garbage
+  C_prog_rom_addr_bits: integer range 12 to 14 := 14; 
   C_vga: boolean := false
 );
 port(
@@ -55,12 +58,14 @@ architecture struct of phoenix is
  signal hblank_bkgrd : std_logic;
  signal hblank_frgrd : std_logic; 
  signal S_vga_blank, S_vga_vblank: std_logic;
+ signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
  
  signal cpu_adr  : std_logic_vector(15 downto 0);
  signal cpu_di   : std_logic_vector( 7 downto 0);
  signal cpu_do   : std_logic_vector( 7 downto 0);
  signal cpu_wr_n : std_logic;
  signal prog_do  : std_logic_vector( 7 downto 0);
+ signal S_prog_rom_addr : std_logic_vector(13 downto 0);
  
  signal frgnd_horz_cnt : std_logic_vector(7 downto 0) := (others =>'0');
  signal bkgnd_horz_cnt : std_logic_vector(7 downto 0) := (others =>'0');
@@ -183,7 +188,7 @@ G_vga: if C_vga generate
   vgabitmap: entity work.vga
   port map (
       clk_pixel => clk_pixel,
-      test_picture => '0', -- shows test picture when VGA is disabled (on startup)
+      test_picture => '1', -- shows test picture when VGA is disabled (on startup)
       fetch_next => open,
       line_repeat => open,
       red_byte    => (others => '0'), -- framebuffer inputs not used
@@ -193,9 +198,9 @@ G_vga: if C_vga generate
       beam_x(0 downto 0) => open,
       beam_y(9 downto 9) => open,
       beam_y(8 downto 0) => S_vcnt,
-      vga_r(7 downto 6) => open, vga_r(5 downto 0) => open,
-      vga_g(7 downto 6) => open, vga_g(5 downto 0) => open,
-      vga_b(7 downto 6) => open, vga_b(5 downto 0) => open,
+      vga_r(7 downto 6) => S_vga_r, vga_r(5 downto 0) => open,
+      vga_g(7 downto 6) => S_vga_g, vga_g(5 downto 0) => open,
+      vga_b(7 downto 6) => S_vga_b, vga_b(5 downto 0) => open,
       vga_hsync => vga_hsync,
       vga_vsync => vga_vsync,
       vga_blank => S_vga_blank, -- '1' when outside of horizontal or vertical graphics area
@@ -207,9 +212,19 @@ G_vga: if C_vga generate
   --hblank_frgrd <= S_vga_blank and not S_vga_vblank;
   --hblank_bkgrd <= S_vga_blank and not S_vga_vblank;
   vcnt <= S_vcnt(8 downto 1);
-  vga_r     <= rgb_1(0) & rgb_0(0);
-  vga_g     <= rgb_1(2) & rgb_0(2);
-  vga_b     <= rgb_1(1) & rgb_0(1);
+  
+  G_yes_test_picture: if C_test_picture generate
+    -- only test picture, no game
+    vga_r     <= S_vga_r;
+    vga_g     <= S_vga_g;
+    vga_b     <= S_vga_b;
+  end generate;
+  G_no_test_picture: if not C_test_picture generate
+    -- normal game picture
+    vga_r     <= rgb_1(0) & rgb_0(0);
+    vga_g     <= rgb_1(2) & rgb_0(2);
+    vga_b     <= rgb_1(1) & rgb_0(1);
+  end generate;
   vga_blank <= S_vga_blank;
   vga_vblank <= S_vga_vblank;
 end generate;
@@ -393,10 +408,11 @@ G_no_tile_rom: if not C_tile_rom generate
 end generate;
 
 -- Program PROM
+S_prog_rom_addr(C_prog_rom_addr_bits-1 downto 0) <= cpu_adr(C_prog_rom_addr_bits-1 downto 0);
 prog : entity work.phoenix_prog
 port map(
  clk  => clk_pixel,
- addr => cpu_adr(13 downto 0),
+ addr => S_prog_rom_addr,
  data => prog_do
 );
 
