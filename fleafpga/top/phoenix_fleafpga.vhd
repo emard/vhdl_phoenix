@@ -36,7 +36,7 @@ entity phoenix_fleafpga is
 generic
 (
   C_ps2_keyboard: boolean := true;
-  C_clock_blinky: boolean := false
+  C_clock_blinky: boolean := true
 );
 port
 (
@@ -82,7 +82,7 @@ architecture struct of phoenix_fleafpga is
   signal R_blinky: std_logic_vector(25 downto 0);
   signal R_blinky_shift: std_logic_vector(27 downto 0);
 begin
-  I_clk_50_d125_25: entity work.clk_50_d125_25
+  I_clk_25_d125_25: entity work.clk_25_d125_25
   port map(
     CLKI        =>  sys_clock, --  50 MHz
     CLKOP       =>  clk_dvi,   -- 125 MHz
@@ -90,8 +90,8 @@ begin
     CLKOS2      =>  clk_pixel, --  25 MHz
     LOCK        =>  clk_stable
   );
-
   reset <= not clk_stable;
+
   dip_switch(3 downto 0) <= (others => '0');
 
   G_ps2_keyboard: if C_ps2_keyboard generate
@@ -145,6 +145,7 @@ begin
   phoenix: entity work.phoenix
   generic map
   (
+    C_prog_rom_addr_bits => 13,
     C_vga => true
   )
   port map
@@ -176,7 +177,7 @@ begin
   vga2dvi_converter: entity work.vga2dvid
   generic map
   (
-      C_ddr     => false,
+      C_ddr     => true,
       C_depth   => 2 -- 2bpp (2 bit per pixel)
   )
   port map

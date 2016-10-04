@@ -6,7 +6,7 @@
         <Source name="top/phoenix_fleafpga.vhd" type="VHDL" type_short="VHDL">
             <Options top_module="phoenix_fleafpga"/>
         </Source>
-        <Source name="clocks/clk_50_d125_25.vhd" type="VHDL" type_short="VHDL">
+        <Source name="clocks/clk_25_d125_25.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
         <Source name="../rtl_dar/gen_ram.vhd" type="VHDL" type_short="VHDL">
