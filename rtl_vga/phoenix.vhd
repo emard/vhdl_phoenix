@@ -10,6 +10,7 @@ use ieee.numeric_std.all;
 
 entity phoenix is
 generic (
+  C_tile_rom: boolean := true; -- false: disable tile ROM to try game logic on small FPGA
   C_vga: boolean := false
 );
 port(
@@ -331,6 +332,7 @@ video_r     <= rgb_1(0) & rgb_0(0);
 video_g     <= rgb_1(2) & rgb_0(2);
 video_b     <= rgb_1(1) & rgb_0(1);
 
+G_yes_tile_rom: if C_tile_rom generate
 -- foreground graphix ROM bit0
 frgnd_bit0 : entity work.prom_ic39
 port map(
@@ -378,6 +380,17 @@ port map(
  addr => palette_adr,
  data => rgb_1
 );
+end generate;
+
+G_no_tile_rom: if not C_tile_rom generate
+  -- dummy replacement for missing tile ROMs
+  frgnd_bit0_graph <= frgnd_graph_adr(10 downto 3);
+  frgnd_bit1_graph <= "00000000";
+  bkgnd_bit0_graph <= bkgnd_graph_adr(10 downto 3);
+  bkgnd_bit1_graph <= "00000000";
+  rgb_0 <= palette_adr;
+  rgb_1 <= palette_adr;
+end generate;
 
 -- Program PROM
 prog : entity work.phoenix_prog
