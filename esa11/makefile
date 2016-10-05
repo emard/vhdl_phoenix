@@ -3,7 +3,7 @@ project=phoenix_esa11
 xc3sprog_interface = ft4232h_fast
 #xc3sprog_interface = ft4232h
 # name of resulting bitstream file (*.bit)
-bitfile=$(project).runs/impl_1/esa11_xram_axiram_ddr3.bit
+bitfile=$(project).runs/impl_1/phoenix_esa11.bit
 
 junk=*~
 junk+=.Xil vivado.log vivado.jou ip_upgrade.log
