@@ -35,7 +35,7 @@ include altera.mk
 # Setup your sources here
 SRCS = \
 top/phoenix_tb276.vhd \
-clocks/pll_25M_250M_25M_83M333.vhd \
+clocks/pll_25M_250M_25M.vhd \
 ../rtl_dar/gen_ram.vhd \
 ../rtl_dar/io_ps2_keyboard.vhd \
 ../rtl_dar/kbd_joystick.vhd \

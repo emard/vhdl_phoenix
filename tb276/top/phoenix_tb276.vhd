@@ -63,11 +63,11 @@ architecture struct of phoenix_tb276 is
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
   -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
 begin
-  clkgen: entity work.pll_25M_250M_25M_83M333
+  clkgen: entity work.pll_25M_250M_25M
   port map(
-      inclk0 => clk_25m, c0 => clk_pixel_shift, c1 => clk_pixel, c2 => open 
+      inclk0 => clk_25m, c0 => clk_pixel_shift, c1 => clk_pixel,
+      locked => clock_stable
   );
-  clock_stable <= '1'; -- todo should be obtained from PLL lock
 
   reset <= not clock_stable;
   -- dip_switch(3 downto 0) <= sw(4 downto 1);
