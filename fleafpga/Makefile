@@ -11,6 +11,10 @@ DIAMONDC := $(shell find ${DIAMOND_BIN}/ -name diamondc)
 # name of the project as defined in project file
 PROJECT = project
 
+JUNK = ._Real_._Math_.vhd
+JUNK += .run_manager.ini
+JUNK += .recovery *.sty *~
+
 all: $(PROJECT)/$(PROJECT)_$(PROJECT)_sram.vme $(PROJECT)/$(PROJECT)_$(PROJECT)_flash.vme
 	#@rm -rf ${IMPL_DIR}
 	#@echo prj_project open ${PROJ_FILE} \; prj_run Export -task Bitgen | ${DIAMONDC}
@@ -46,4 +50,4 @@ flash: $(PROJECT)/$(PROJECT)_$(PROJECT)_flash.vme
 	# rmmod ftdi_sio; modprobe ftdi_sio
 
 clean:
-	rm -rf ${IMPL_DIR} .recovery *.sty *~
+	rm -rf ${IMPL_DIR} ${JUNK}
