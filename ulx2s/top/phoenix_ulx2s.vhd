@@ -68,6 +68,7 @@ architecture struct of phoenix_ulx2s is
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
+  signal S_audio: std_logic_vector(11 downto 0);
 
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
   
@@ -145,6 +146,7 @@ begin
   phoenix: entity work.phoenix
   generic map
   (
+    C_audio => true,
     C_vga => true
   )
   port map
@@ -164,8 +166,11 @@ begin
     vga_b        => S_vga_b,
     vga_hsync    => S_vga_hsync,
     vga_vsync    => S_vga_vsync,
-    vga_blank    => S_vga_blank
+    vga_blank    => S_vga_blank,
+    audio        => S_audio
   );
+  
+  p_tip <= S_audio(11 downto 8);
 
   -- some debugging with LEDs
   led(0) <= R_blinky(R_blinky'high);

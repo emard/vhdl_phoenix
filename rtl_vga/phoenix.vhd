@@ -13,6 +13,7 @@ generic (
   C_test_picture: boolean := false;
   C_tile_rom: boolean := true; -- false: disable tile ROM to try game logic on small FPGA
   -- reduce ROMs: 14 is normal game, 13 will draw initial screen, 12 will repeatedly blink 1 line of garbage
+  C_audio: boolean := false;
   C_prog_rom_addr_bits: integer range 12 to 14 := 14; 
   C_vga: boolean := false
 );
@@ -36,8 +37,10 @@ port(
  video_csync  : out std_logic;
  video_vblank, video_hblank_bg, video_hblank_fg: out std_logic;
  video_hs     : out std_logic;
- video_vs     : out std_logic-- audio_select : in std_logic_vector(2 downto 0);
- --audio        : out std_logic_vector(11 downto 0)
+ video_vs     : out std_logic;
+
+ audio_select : in std_logic_vector(2 downto 0) := (others => '0');
+ audio        : out std_logic_vector(11 downto 0)
 );
 end phoenix;
 
@@ -441,64 +444,68 @@ port map(
  q    => bkgnd_ram_do
 );
 
--- sound effect1
---effect1 : entity work.phoenix_effect1
---port map(
---clk50    => clk_50m,
---clk10    => clk10,
---reset    => '0',
---trigger  => sound_a(4),
---filter   => sound_a(5),
---divider  => sound_a(3 downto 0),
---snd      => snd1
---);
+G_audio: if C_audio generate
+effect1: entity work.phoenix_effect1
+port map
+(
+  clk50    => clk_pixel,
+  clk10    => clk_pixel,
+  reset    => '0',
+  trigger  => sound_a(4),
+  filter   => sound_a(5),
+  divider  => sound_a(3 downto 0),
+  snd      => snd1
+);
 
--- sound effect2
---effect2 : entity work.phoenix_effect2
---port map(
---clk50    => clk_50m,
---clk10    => clk10,
---reset    => '0',
---trigger1 => sound_b(4),
---trigger2 => sound_b(5),
---divider  => sound_b(3 downto 0),
---snd      => snd2
---);
+effect2 : entity work.phoenix_effect2
+port map
+(
+  clk50    => clk_pixel,
+  clk10    => clk_pixel,
+  reset    => '0',
+  trigger1 => sound_b(4),
+  trigger2 => sound_b(5),
+  divider  => sound_b(3 downto 0),
+  snd      => snd2
+);
 
--- sound effect3
---effect3 : entity work.phoenix_effect3
---port map(
---clk50    => clk_50m,
---clk10    => clk10,
---reset    => '0',
---trigger1 => sound_b(6),
---trigger2 => sound_b(7),
---snd      => snd3
---);
+effect3 : entity work.phoenix_effect3
+port map
+(
+  clk50    => clk_pixel,
+  clk10    => clk_pixel,
+  reset    => '0',
+  trigger1 => sound_b(6),
+  trigger2 => sound_b(7),
+  snd      => snd3
+);
 
--- melody
---music : entity work.phoenix_music
---port map(
---clk10    => clk10,
---reset    => '0',
---trigger  => sound_a(7),
---sel_song => sound_a(6),
---snd      => song
---);
+music: entity work.phoenix_music
+port map
+(
+  clk10    => clk_pixel,
+  reset    => '0',
+  trigger  => sound_a(7),
+  sel_song => sound_a(6),
+  snd      => song
+);
 
 -- mix effects and music
---mixed <= std_logic_vector(
- --     unsigned("00"  & snd1 & "00") +
-  --    unsigned("0"   & snd2 & "000000000")+
-   --   unsigned("00"  & snd3 & "00")+
-   --   unsigned("00"  & song & "00" ));
+mixed <= std_logic_vector
+       (
+         unsigned("00"  & snd1 & "00") +
+         unsigned("0"   & snd2 & "000000000") +
+         unsigned("00"  & snd3 & "00") +
+         unsigned("00"  & song & "00" )
+       );
 
 -- select sound or/and effect
---with audio_select select
---audio <= "00"   & snd1  & "00"        when "100",
---         "0"    & snd2  & "000000000" when "101",
- --        "00"   & snd3  & "00"        when "110",
-  --       "00"  &  song  & "00"        when "111",
-   --               mixed               when others;
+with audio_select select
+audio <= "00"   & snd1  & "00"        when "100",
+         "0"    & snd2  & "000000000" when "101",
+         "00"   & snd3  & "00"        when "110",
+         "00"   & song  & "00"        when "111",
+                  mixed               when others;
+end generate;
 
 end struct;
