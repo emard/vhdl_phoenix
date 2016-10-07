@@ -36,12 +36,10 @@ entity phoenix_tb276 is
 port
 (
   clk_25m: in std_logic;
-  --rs232_txd: out std_logic;
-  --rs232_rxd: in std_logic;
   led: out std_logic_vector(7 downto 0);
   gpio: inout std_logic_vector(31 downto 0);
-  hdmi_dp, hdmi_dn: out std_logic_vector(2 downto 0);
-  hdmi_clkp, hdmi_clkn: out std_logic;
+  hdmi_d: out std_logic_vector(2 downto 0);
+  hdmi_clk: out std_logic;
   btn_left, btn_right: in std_logic
 );
 end;
@@ -50,8 +48,6 @@ architecture struct of phoenix_tb276 is
   signal clk_pixel, clk_pixel_shift: std_logic;
  
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
-  --signal tmds_rgb: std_logic_vector(2 downto 0);
-  --signal tmds_clk: std_logic;
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
@@ -133,17 +129,21 @@ begin
     out_blue  => dvid_blue,
     out_clock => dvid_clock
   );
-
-  -- differential output buffering for HDMI clock and video
-  hdmi_output: entity work.hdmi_out
-  port map
-  (
-    tmds_in_rgb    => dvid_red(0) & dvid_green(0) & dvid_blue(0),
-    tmds_out_rgb_p => hdmi_dp,   -- D2+ red  D1+ green  D0+ blue
-    tmds_out_rgb_n => hdmi_dn,   -- D2- red  D1- green  D0+ blue
-    tmds_in_clk    => dvid_clock(0),
-    tmds_out_clk_p => hdmi_clkp, -- CLK+ clock
-    tmds_out_clk_n => hdmi_clkn  -- CLK- clock
-  );
+  
+  -- true differential pins defined in constraints
+  hdmi_d <= dvid_red(0) & dvid_green(0) & dvid_blue(0);
+  hdmi_clk <= dvid_clock(0);
+  
+  -- GPIO "differential" output buffering for HDMI
+  --hdmi_output: entity work.hdmi_out
+  --port map
+  --(
+  --  tmds_in_rgb    => dvid_red(0) & dvid_green(0) & dvid_blue(0),
+  --  tmds_out_rgb_p => hdmi_dp,   -- D2+ red  D1+ green  D0+ blue
+  --  tmds_out_rgb_n => hdmi_dn,   -- D2- red  D1- green  D0+ blue
+  --  tmds_in_clk    => dvid_clock(0),
+  --  tmds_out_clk_p => hdmi_clkp, -- CLK+ clock
+  --  tmds_out_clk_n => hdmi_clkn  -- CLK- clock
+  --);
   gpio(31 downto 20) <= S_audio;
 end struct;

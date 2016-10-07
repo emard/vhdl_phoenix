@@ -85,45 +85,51 @@ set_location_assignment PIN_75  -to gpio[47]
 # we define in on J4 connector (routed differential)
 # hecp = HPD (hotplug detect input)
 
-# GPIO HDMI
-set_location_assignment PIN_121 -to "hdmi_hecn"
-set_location_assignment PIN_120 -to "hdmi_hecp"
-set_location_assignment PIN_125 -to "hdmi_sda"
-set_location_assignment PIN_124 -to "hdmi_scl"
-set_location_assignment PIN_127 -to "hdmi_clkn"
-set_location_assignment PIN_126 -to "hdmi_clkp"
-set_location_assignment PIN_129 -to "hdmi_dn[0]"
-set_location_assignment PIN_128 -to "hdmi_dp[0]"
-set_location_assignment PIN_133 -to "hdmi_dn[1]"
-set_location_assignment PIN_132 -to "hdmi_dp[1]"
-set_location_assignment PIN_136 -to "hdmi_dn[2]"
-set_location_assignment PIN_135 -to "hdmi_dp[2]"
-set_location_assignment PIN_137 -to "hdmi_cec"
-
-# Differential HDMI
-#set_location_assignment PIN_121 -to "hdmi_hec"
-#set_location_assignment PIN_120 -to "hdmi_hec(n)"
+# GPIO HDMI works wired directly to connector.
+# pins should be set to "3.3-V LVCMOS" I/O standard
+# No transcievers or resistors necessary.
+#set_location_assignment PIN_121 -to "hdmi_clkp"
+#set_location_assignment PIN_120 -to "hdmi_clkn"
 #set_location_assignment PIN_125 -to "hdmi_sda"
 #set_location_assignment PIN_124 -to "hdmi_scl"
-#set_location_assignment PIN_127 -to "hdmi_clk"
-#set_location_assignment PIN_126 -to "hdmi_clk(n)"
-#set_location_assignment PIN_129 -to "hdmi_d[0]"
-#set_location_assignment PIN_128 -to "hdmi_d(n)[0]"
-#set_location_assignment PIN_133 -to "hdmi_d[1]"
-#set_location_assignment PIN_132 -to "hdmi_d(n)[1]"
-#set_location_assignment PIN_136 -to "hdmi_d[2]"
-#set_location_assignment PIN_135 -to "hdmi_d(n)[2]"
+#set_location_assignment PIN_127 -to "hdmi_dp[0]"
+#set_location_assignment PIN_126 -to "hdmi_dn[0]"
+#set_location_assignment PIN_129 -to "hdmi_dp[1]"
+#set_location_assignment PIN_128 -to "hdmi_dn[1]"
+#set_location_assignment PIN_133 -to "hdmi_dp[2]"
+#set_location_assignment PIN_132 -to "hdmi_dn[2]"
+#set_location_assignment PIN_136 -to "hdmi_hecp"
+#set_location_assignment PIN_135 -to "hdmi_hecn"
 #set_location_assignment PIN_137 -to "hdmi_cec"
 
+# Differential HDMI works wired directly to connector.
+# pins should be set to "MINI-LVDS_E_3R" I/O standard
+# No transcievers or resistors necessary.
+set_location_assignment PIN_121 -to "hdmi_clk"
+set_location_assignment PIN_120 -to "hdmi_clk(n)"
+set_location_assignment PIN_125 -to "hdmi_sda"
+set_location_assignment PIN_124 -to "hdmi_scl"
+set_location_assignment PIN_127 -to "hdmi_d[0]"
+set_location_assignment PIN_126 -to "hdmi_d(n)[0]"
+set_location_assignment PIN_129 -to "hdmi_d[1]"
+set_location_assignment PIN_128 -to "hdmi_d(n)[1]"
+set_location_assignment PIN_133 -to "hdmi_d[2]"
+set_location_assignment PIN_132 -to "hdmi_d(n)[2]"
+set_location_assignment PIN_136 -to "hdmi_hec"
+set_location_assignment PIN_135 -to "hdmi_hec(n)"
+set_location_assignment PIN_137 -to "hdmi_cec"
+
+
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clk_25m
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rs232_rxd
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to rs232_txd
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to ant_433M92
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[0]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[1]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[2]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[3]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[4]
+
+# Warning: led[4:0] are connected to I/O bank 8.
+# Because MINI-LVDS_E_3R is enabled at I/O bank 7 and 8 for HDMI,
+# LED I/O standard can't be 3.3V (it can be 2.5V).
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[0]
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[1]
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[2]
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[3]
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[4]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[5]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[6]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[7]
@@ -179,43 +185,43 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[46]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[47]
 
 # GPIO HDMI
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_clkp"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_clkn"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dp[0]"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dn[0]"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dp[1]"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dn[1]"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dp[2]"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dn[2]"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_hecp"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_hecn"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_sda"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_scl"
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_cec"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_clkp"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_clkn"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dp[0]"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dn[0]"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dp[1]"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dn[1]"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dp[2]"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_dn[2]"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_hecp"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_hecn"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_sda"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_scl"
+#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to "hdmi_cec"
 
 # Differential HDMI
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_clk"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_clk"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_clk(n)"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_clk(n)"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_d[0]"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d[0]"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_d(n)[0]"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d(n)[0]"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_d[1]"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d[1]"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_d(n)[1]"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d(n)[1]"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_d[2]"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d[2]"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_d(n)[2]"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d(n)[2]"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_hec"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_hec"
-#set_instance_assignment -name IO_STANDARD "LVDS_E_3R" -to "hdmi_hec(n)"
-#set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_hec(n)"
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hdmi_sda
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hdmi_scl
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hdmi_cec
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_clk"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_clk"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_clk(n)"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_clk(n)"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_d[0]"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d[0]"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_d(n)[0]"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d(n)[0]"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_d[1]"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d[1]"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_d(n)[1]"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d(n)[1]"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_d[2]"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d[2]"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_d(n)[2]"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_d(n)[2]"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_hec"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_hec"
+set_instance_assignment -name IO_STANDARD "MINI-LVDS_E_3R" -to "hdmi_hec(n)"
+set_instance_assignment -name CURRENT_STRENGTH_NEW "MINIMUM CURRENT" -to "hdmi_hec(n)"
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hdmi_sda
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hdmi_scl
+set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to hdmi_cec
 
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
