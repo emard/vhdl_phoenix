@@ -130,5 +130,6 @@ program_ocd: $(PROJECT).svf
 	openocd --file=$(OPENOCD_INTERFACE) --file=tb276.ocd
 
 flash: $(PROJECT).jic
-	$(quartus_env); quartus_pgm --no_banner --mode=jtag -o "IPV;$(PROJECT).jic"
+	#$(quartus_env); quartus_pgm --no_banner --mode=jtag -o "IPV;$(PROJECT).jic"
+	$(quartus_env); quartus_pgm --no_banner --mode=jtag -o "IP;$(PROJECT).jic"
 	echo "Power cycle or Reset device to run"
