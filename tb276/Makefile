@@ -62,6 +62,6 @@ clocks/pll_25M_250M_25M.vhd \
 ../rtl_vga/phoenix.vhd \
 ../rtl_vga/phoenix_video_vga.vhd \
 ../rtl_vga/vga.vhd \
-../rtl_vga/vga2dvid.vhd \
-../rtl_vga/tmds_encoder.vhd \
+../rtl_vga/hdmi/vga2dvid.vhd \
+../rtl_vga/hdmi/tmds_encoder.vhd \
 ../rtl_vga/hdmi_out.vhd \

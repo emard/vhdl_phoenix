@@ -44,8 +44,8 @@ vhdl/clocks/clk_50_50_250_25_11MHz.vhd \
 ../rtl_vga/phoenix.vhd \
 ../rtl_vga/phoenix_video_vga.vhd \
 ../rtl_vga/vga.vhd \
-../rtl_vga/vga2dvid.vhd \
-../rtl_vga/tmds_encoder.vhd \
+../rtl_vga/hdmi/vga2dvid.vhd \
+../rtl_vga/hdmi/tmds_encoder.vhd \
 ../rtl_vga/xilinx/xc6/hdmi_out_xc6.vhd \
 
 include xilinx.mk
