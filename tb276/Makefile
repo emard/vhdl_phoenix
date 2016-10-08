@@ -36,6 +36,7 @@ include altera.mk
 SRCS = \
 top/phoenix_tb276.vhd \
 clocks/pll_25M_250M_25M.vhd \
+clocks/clk_25M_125M_25M.vhd \
 ../rtl_dar/gen_ram.vhd \
 ../rtl_dar/io_ps2_keyboard.vhd \
 ../rtl_dar/kbd_joystick.vhd \
@@ -65,3 +66,9 @@ clocks/pll_25M_250M_25M.vhd \
 ../rtl_vga/hdmi/vga2dvid.vhd \
 ../rtl_vga/hdmi/tmds_encoder.vhd \
 ../rtl_vga/hdmi_out.vhd \
+../rtl_vga/hdmi-audio/av_hdmi.vhd \
+../rtl_vga/hdmi-audio/hdmidataencoder.v \
+../rtl_vga/hdmi-audio/encoder.vhd \
+../rtl_vga/altera/cyclone4/serializer.vhd \
+../rtl_vga/hdmi-audio/hdmidelay.vhd \
+../rtl_vga/hdmi-audio/serializer_generic.vhd \

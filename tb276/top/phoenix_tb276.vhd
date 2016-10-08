@@ -33,6 +33,10 @@ use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
 
 entity phoenix_tb276 is
+generic
+(
+  C_hdmi_audio: boolean := true -- HDMI generator type: false: video only, true: video+audio capable
+);
 port
 (
   clk_25m: in std_logic;
@@ -50,6 +54,7 @@ architecture struct of phoenix_tb276 is
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
+  signal S_vga_r8, S_vga_g8, S_vga_b8: std_logic_vector(7 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
   signal S_audio: std_logic_vector(11 downto 0);
@@ -59,11 +64,21 @@ architecture struct of phoenix_tb276 is
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
   -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
 begin
-  clkgen: entity work.pll_25M_250M_25M
+  G_sdr: if not C_hdmi_audio generate
+  clkgen_sdr: entity work.pll_25M_250M_25M
   port map(
       inclk0 => clk_25m, c0 => clk_pixel_shift, c1 => clk_pixel,
       locked => clock_stable
   );
+  end generate;
+
+  G_ddr: if C_hdmi_audio generate
+  clkgen_ddr: entity work.clk_25M_125M_25M
+  port map(
+      inclk0 => clk_25m, c0 => clk_pixel_shift, c1 => clk_pixel,
+      locked => clock_stable
+  );
+  end generate;
 
   reset <= not clock_stable;
   -- dip_switch(3 downto 0) <= sw(4 downto 1);
@@ -103,7 +118,8 @@ begin
   led(5) <= S_vga_r(1); -- when game works, changing color on
   led(6) <= S_vga_g(1); -- large area of the screen should
   led(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
-
+  
+  G_hdmi_video_only: if not C_hdmi_audio generate
   vga2dvi_converter: entity work.vga2dvid
   generic map
   (
@@ -129,7 +145,6 @@ begin
     out_blue  => dvid_blue,
     out_clock => dvid_clock
   );
-  
   -- true differential pins defined in constraints
   hdmi_d <= dvid_red(0) & dvid_green(0) & dvid_blue(0);
   hdmi_clk <= dvid_clock(0);
@@ -145,5 +160,40 @@ begin
   --  tmds_out_clk_p => hdmi_clkp, -- CLK+ clock
   --  tmds_out_clk_n => hdmi_clkn  -- CLK- clock
   --);
+  end generate;
+
+  G_hdmi_video_audio: if C_hdmi_audio generate
+  S_vga_r8 <= S_vga_r & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0);
+  S_vga_g8 <= S_vga_g & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0);
+  S_vga_b8 <= S_vga_b & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0);
+  av_hdmi_out: entity work.av_hdmi
+  generic map
+  (
+    C_generic_serializer => false,
+    FREQ => 25000000,
+    FS => 48000,
+    CTS => 25000,
+    N => 6144
+  )
+  port map
+  (
+    I_CLK_PIXEL_x5 => clk_pixel_shift,
+    I_CLK_PIXEL    => clk_pixel,
+    I_R            => S_vga_r8,
+    I_G	           => S_vga_g8,
+    I_B            => S_vga_b8,
+    I_BLANK        => S_vga_blank,
+    I_HSYNC        => not S_vga_hsync,
+    I_VSYNC        => not S_vga_vsync,
+    I_AUDIO_ENABLE => btn_right, -- press right button to disable audio (generate only video)
+    I_AUDIO_PCM_L  => S_audio & "0000",
+    I_AUDIO_PCM_R  => S_audio & "0000",
+    O_TMDS_D0      => HDMI_D(0),
+    O_TMDS_D1      => HDMI_D(1),
+    O_TMDS_D2      => HDMI_D(2),
+    O_TMDS_CLK     => HDMI_CLK
+  );
+  end generate;
+  
   gpio(31 downto 20) <= S_audio;
 end struct;
