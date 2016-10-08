@@ -38,15 +38,18 @@ BEGIN
   -- rename - separate to shifted 4 channels
   separate_channels:
   for i in 0 to C_channels-1 generate
-    S_channel_latch(i) <= R_tx_latch(C_channel_bits*(i+1)-1 downto C_channel_bits*i);
+    reverse_bits:
+    for j in 0 to C_channel_bits-1 generate
+      S_channel_latch(i)(j) <= R_tx_latch(C_channel_bits*(i+1)-j-1);
+    end generate;
   end generate;
 
-  S_channel_latch(3) <= "0000011111"; -- the clock pattern
+  S_channel_latch(3) <= "1111100000"; -- the clock pattern
 
-  -- clock edge detection
-  process(tx_inclock) -- pixel shift clock
+  -- shift register for shift-synchronous pixel clock edge detection
+  process(tx_inclock) -- pixel shift clock (250 MHz)
   begin
-    if rising_edge(tx_inclock) then
+    if rising_edge(tx_inclock) then -- pixel clock (25 MHz)
       R_clock_edge <= tx_syncclock & R_clock_edge(1);
     end if;
   end process;

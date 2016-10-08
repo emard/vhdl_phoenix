@@ -35,6 +35,7 @@ use ieee.numeric_std.all;
 entity phoenix_tb276 is
 generic
 (
+  C_hdmi_generic_serializer: boolean := true; -- serializer type: false: vendor-specific, true: generic=vendor-agnostic
   C_hdmi_audio: boolean := true -- HDMI generator type: false: video only, true: video+audio capable
 );
 port
@@ -64,7 +65,7 @@ architecture struct of phoenix_tb276 is
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
   -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
 begin
-  G_sdr: if not C_hdmi_audio generate
+  G_sdr: if C_hdmi_generic_serializer or not C_hdmi_audio generate
   clkgen_sdr: entity work.pll_25M_250M_25M
   port map(
       inclk0 => clk_25m, c0 => clk_pixel_shift, c1 => clk_pixel,
@@ -72,7 +73,7 @@ begin
   );
   end generate;
 
-  G_ddr: if C_hdmi_audio generate
+  G_ddr: if C_hdmi_audio and not C_hdmi_generic_serializer generate
   clkgen_ddr: entity work.clk_25M_125M_25M
   port map(
       inclk0 => clk_25m, c0 => clk_pixel_shift, c1 => clk_pixel,
@@ -169,7 +170,7 @@ begin
   av_hdmi_out: entity work.av_hdmi
   generic map
   (
-    C_generic_serializer => false,
+    C_generic_serializer => C_hdmi_generic_serializer,
     FREQ => 25000000,
     FS => 48000,
     CTS => 25000,

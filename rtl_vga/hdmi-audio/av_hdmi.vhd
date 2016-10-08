@@ -348,32 +348,38 @@ port map (
 	AUX	=> dataPacket2Out,
 	ENCODED	=> enc2out);
 
-tx_in <= red(0) & red(1) & red(2) & red(3) & red(4) & red(5) & red(6) & red(7) & red(8) & red(9) &
-	 green(0) & green(1) & green(2) & green(3) & green(4) & green(5) & green(6) & green(7) & green(8) & green(9) &
-	 blue(0) & blue(1) & blue(2) & blue(3) & blue(4) & blue(5) & blue(6) & blue(7) & blue(8) & blue(9);
+-- tx_in <= red & green & blue; -- this would be normal bit order, but
+-- vendor specific serializer needs reverse bit order:
+tx_in <=   red(0) & red(1) & red(2) & red(3) & red(4) & red(5) & red(6) & red(7) & red(8) & red(9) &
+           green(0) & green(1) & green(2) & green(3) & green(4) & green(5) & green(6) & green(7) & green(8) & green(9) &
+           blue(0) & blue(1) & blue(2) & blue(3) & blue(4) & blue(5) & blue(6) & blue(7) & blue(8) & blue(9);
 
 G_vendor_specific_serializer:
 if not C_GENERIC_SERIALIZER generate
   vendor_serializer_inst: entity work.serializer
-  PORT MAP (
-	tx_in	 	=> tx_in,
-	tx_inclock	=> I_CLK_PIXEL_x5,
-	tx_syncclock	=> I_CLK_PIXEL,
-	tx_out	 	=> tmds_d(2 downto 0));
+  PORT MAP
+  (
+    tx_in        => tx_in,
+    tx_inclock   => I_CLK_PIXEL_x5,
+    tx_syncclock => I_CLK_PIXEL,
+    tx_out       => tmds_d(2 downto 0)
+  );
   O_TMDS_D0  <= tmds_d(0);
   O_TMDS_D1  <= tmds_d(1);
   O_TMDS_D2  <= tmds_d(2);
   O_TMDS_CLK <= I_CLK_PIXEL;
 end generate;
 
-G_vendor_independent_serializer:
+G_generic_serializer:
 if C_GENERIC_SERIALIZER generate
-generic_serializer_inst: entity work.serializer_generic
-PORT MAP (
-	tx_in	 	=> tx_in,
-	tx_inclock	=> I_CLK_PIXEL_x5, -- actually 10x I_CLK_PIXEL
-	tx_syncclock	=> I_CLK_PIXEL,
-	tx_out	 	=> tmds_d);
+  generic_serializer_inst: entity work.serializer_generic
+  PORT MAP
+  (
+    tx_in        => tx_in,
+    tx_inclock	 => I_CLK_PIXEL_x5, -- NOTE: generic serializer needs I_CLK_PIXEL_x10
+    tx_syncclock => I_CLK_PIXEL,
+    tx_out	 => tmds_d
+  );
   O_TMDS_D0  <= tmds_d(0);
   O_TMDS_D1  <= tmds_d(1);
   O_TMDS_D2  <= tmds_d(2);
