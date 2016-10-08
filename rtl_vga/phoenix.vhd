@@ -189,6 +189,11 @@ G_vga: if C_vga generate
 
   -- VGA video generator - pixel clock synchronous
   vgabitmap: entity work.vga
+  --generic map -- workaround for wrong video size
+  --(
+  --  C_resolution_x => 638,
+  --  C_hsync_front_porch => 18
+  --)
   port map (
       clk_pixel => clk_pixel,
       test_picture => '1', -- shows test picture when VGA is disabled (on startup)
