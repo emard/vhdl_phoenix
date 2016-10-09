@@ -7,9 +7,53 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 entity phoenix_effect2 is
 generic(
+ Vmax: real := 5.0; -- V
+ Vmax_bits: integer := 16; -- number of bits to represent vmax
+ -- Oscillator 1
+ Osc1_Fs: real := 25.0; -- MHz
+ Osc1_Vb: real := 5.0; -- V
+ Osc1_Vce: real := 0.2; -- V
+ Osc1_R1: real := 47.0; -- k
+ Osc1_R2: real := 100.0; -- k
+ Osc1_C1: real := 0.01; -- uF
+ Osc1_C2: real := 0.47; -- uF
+ Osc1_C3: real := 1.0; -- uF
+ Osc1_Div2n: integer := 8; -- bits divisor
+ Osc1_bits: integer := 16; -- bits counter
+ -- Oscillator 2
+ Osc2_Fs: real := 25.0; -- MHz
+ Osc2_Vb: real := 5.0; -- V
+ Osc2_Vce: real := 0.2; -- V
+ Osc2_R1: real := 510.0; -- k
+ Osc2_R2: real := 510.0; -- k
+ Osc2_C: real := 1.0; -- uF
+ Osc2_Div2n: integer := 8; -- bits divisor
+ Osc2_bits: integer := 16; -- bits counter
+ -- Filter 2
+ Filt2_Fs: real := 25.0; -- MHz
+ Filt2_V: real := 5.0; -- V
+ Filt2_R1: real := 10.0; -- k
+ Filt2_R2: real := 5.1; -- k
+ Filt2_R3: real := 5.1; -- k
+ Filt2_R4: real := 5.0; -- k
+ Filt2_R5: real := 10.0; -- k
+ Filt2_C: real := 100.0; -- uF
+ Filt2_Div2n: integer := 8; -- bits divisor
+ Filt2_bits: integer := 16; -- bits counter
+ -- Oscillator 3
+ Osc3_Fs: real := 25.0; -- MHz
+ Osc3_Vb: real := 5.0; -- V
+ Osc3_Vce: real := 0.2; -- V
+ Osc3_R1: real := 20.0; -- k
+ Osc3_R2: real := 20.0; -- k
+ Osc3_C: real := 0.001; -- uF
+ Osc3_Div2n: integer := 8; -- bits divisor
+ Osc3_bits: integer := 16; -- bits counter
+
   C_oscillateur1_VF1: integer := 65535;
   C_oscillateur1_VF2: integer := 2621;
   C_oscillateur1_T0_k1: integer := 144;
@@ -52,6 +96,36 @@ port(
 ); end phoenix_effect2;
 
 architecture struct of phoenix_effect2 is
+ -- integer representation of voltage, full range
+ constant IVmax: integer := integer(2**Vmax_bits)-1;
+ -- Oscillator1 --
+ constant Osc1_div: integer := integer(2**Osc1_Div2n);
+ -- Oscillator1 charge/discharge voltages
+ constant Osc1_VFc: real := Osc1_Vb; -- V
+ constant Osc1_iVFc: integer := integer(Osc1_VFc/Vmax*IVmax);
+ constant Osc1_VFd: real := Osc1_Vce; -- V
+ constant Osc1_iVFd: integer := integer(Osc1_VFd/Vmax*IVmax);
+ -- Oscillator1 charge/discharge time constants
+ constant Osc1_T0_RCc: real := (Osc1_R1+Osc1_R2)*Osc1_C1/1000.0; -- s
+ constant Osc1_T0_ikc: integer := integer(Osc1_T0_RCc/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+ constant Osc1_T0_RCd: real := Osc1_R2*Osc1_C1/1000.0; -- s
+ constant Osc1_T0_ikd: integer := integer(Osc1_T0_RCd/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+
+ constant Osc1_T1_RCc: real := (Osc1_R1+Osc1_R2)*(Osc1_C1+Osc1_C2)/1000.0; -- s
+ constant Osc1_T1_ikc: integer := integer(Osc1_T1_RCc/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+ constant Osc1_T1_RCd: real := Osc1_R2*(Osc1_C1+Osc1_C2)/1000.0; -- s
+ constant Osc1_T1_ikd: integer := integer(Osc1_T1_RCd/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+
+ constant Osc1_T2_RCc: real := (Osc1_R1+Osc1_R2)*(Osc1_C1+Osc1_C3)/1000.0; -- s
+ constant Osc1_T2_ikc: integer := integer(Osc1_T2_RCc/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+ constant Osc1_T2_RCd: real := Osc1_R2*(Osc1_C1+Osc1_C3)/1000.0; -- s
+ constant Osc1_T2_ikd: integer := integer(Osc1_T2_RCd/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+
+ constant Osc1_T3_RCc: real := (Osc1_R1+Osc1_R2)*(Osc1_C1+Osc1_C2+Osc1_C3)/1000.0; -- s
+ constant Osc1_T3_ikc: integer := integer(Osc1_T3_RCc/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+ constant Osc1_T3_RCd: real := Osc1_R2*(Osc1_C1+Osc1_C2+Osc1_C3)/1000.0; -- s
+ constant Osc1_T3_ikd: integer := integer(Osc1_T3_RCd/2**Osc1_Div2n * Osc1_Fs * 1.0E6);
+
 
  signal u_c1  : unsigned(15 downto 0) := (others => '0');
  signal u_c2  : unsigned(15 downto 0) := (others => '0');
