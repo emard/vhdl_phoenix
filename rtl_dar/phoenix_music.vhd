@@ -9,6 +9,23 @@ use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
 
 entity phoenix_music is
+generic(
+  -- 10 MHz
+  --C_voice_attack: integer := 2500;
+  --C_song0_tempo: integer := 24000;
+  --C_song1_tempo: integer := 19000;
+  --C_voice_down_rate: integer := 400
+  -- 25 MHz
+  C_voice_attack: integer := 6250;
+  C_song0_tempo: integer := 9600;
+  C_song1_tempo: integer := 7600;
+  C_voice_down_rate: integer := 160
+  -- experiment
+  --C_voice_attack: integer := 2500;
+  --C_song0_tempo: integer := 25000;
+  --C_song1_tempo: integer := 19000;
+  --C_voice_down_rate: integer := 1000
+);
 port(
  clk10    : in std_logic;
  reset    : in std_logic;
@@ -54,7 +71,7 @@ constant tone_period : period_array := (
 24079  -- ton 11 Sol# (G#)
 );
 
-signal tempo_period    : integer range 0 to 25000 := 19000; --0.19s @ 100kHz 
+signal tempo_period    : integer range 0 to C_song0_tempo := C_song1_tempo; --0.19s @ 100kHz 
 
 signal voice1_tone     : integer range 0 to 65535 := 0;
 signal voice1_tone_div : integer range 0 to 65535 := 0;
@@ -80,11 +97,11 @@ begin
 process (clk10)
  variable cnt              : integer range 0 to 127   := 0;
  variable step             : integer range 0 to 94    := 94;
- variable tempo            : integer range 0 to 25000 := 0;
+ variable tempo            : integer range 0 to C_song0_tempo := 0;
  variable voice1_code_v    : unsigned(6 downto 0) := "0000000";
  variable voice2_code_v    : unsigned(6 downto 0) := "0000000";
- variable voice1_down_rate : integer range 0 to 400 := 0;
- variable voice2_down_rate : integer range 0 to 400 := 0;
+ variable voice1_down_rate : integer range 0 to C_voice_down_rate := 0;
+ variable voice2_down_rate : integer range 0 to C_voice_down_rate := 0;
 begin
  if rising_edge(clk10) then
   trigger_r <= trigger;
@@ -102,10 +119,10 @@ begin
 	 sel_song_r <= sel_song;
    if sel_song = '1' then 
     max_step     <= 94;
-    tempo_period <= 19000; 
+    tempo_period <= C_song1_tempo; 
    else 
     max_step     <= 46;
-    tempo_period <= 24000;
+    tempo_period <= C_song0_tempo;
    end if;
   else
    cnt  := cnt +1;
@@ -134,27 +151,27 @@ begin
      if (step < 94) then -- if not end of music
       -- manage voice1 volume
       --   ramp up fast to xF0 at begining of beat when new strike 
-      if (tempo < 2500) and (voice1_code_v(6)='0') then
+      if (tempo < C_voice_attack) and (voice1_code_v(6)='0') then
         if voice1_vol < X"F0" then voice1_vol <= voice1_vol + X"01"; end if;
        voice1_down_rate := 0;
       --  ramp down slowly after a while, down to x80
       else
        if voice1_vol > X"80" then
         voice1_down_rate := voice1_down_rate+1;
-         if voice1_down_rate >= 400 then 
+         if voice1_down_rate >= C_voice_down_rate then 
          voice1_down_rate := 0;
          voice1_vol <= voice1_vol - X"01";
         end if;  
        end if;
       end if;
       -- manage voice2 volume
-      if (tempo < 2500) and (voice2_code_v(6)='0') then
+      if (tempo < C_voice_attack) and (voice2_code_v(6)='0') then
         if voice2_vol < X"F0" then voice2_vol <= voice2_vol + X"01"; end if;
        voice2_down_rate := 0;
       else
        if voice2_vol > X"80" then
         voice2_down_rate := voice2_down_rate+1;
-         if voice2_down_rate >= 400 then 
+         if voice2_down_rate >= C_voice_down_rate then 
          voice2_down_rate := 0;
          voice2_vol <= voice2_vol - X"01";
         end if;
