@@ -7,9 +7,36 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 entity phoenix_effect1 is
 generic(
+  Vmax: real := 5.0; -- V
+  IVmax: real := 65535.0; -- integer representation of Vmax
+  -- Command
+  Cmd_Fs: real := 25.0; -- MHz
+  Cmd_V: real := 12.0; -- V
+  Cmd_Vd: real := 0.46; -- V
+  Cmd_Vce: real := 0.20; -- V
+  Cmd_R1: real := 100.0; -- k
+  Cmd_R2: real := 33.0; -- k
+  Cmd_R3: real := 0.47; -- k
+  Cmd_C: real := 6.8; -- uF
+  Cmd_Div2n: integer := 8;
+  -- Oscillator
+  Osc_Fs: real := 25.0; -- MHz
+  Osc_Vb: real := 5.0; -- V
+  Osc_Vce: real := 0.20; -- V
+  Osc_R1: real := 47.0; -- k
+  Osc_R2: real := 47.0; -- k
+  Osc_C: real := 0.001; -- uF
+  -- Filter
+  Filt_Fs: real := 25.0; -- MHz
+  Filt_V1: real := 5.0; -- V
+  Filt_R1: real := 100.0; -- k
+  Filt_R2: real := 10.0; -- k
+  Filt_C: real := 0.047; -- uF
+
   C_commande_VF1: integer := 43559;
   C_commande_k1: integer := 16477;
   C_commande_VF2: integer := 9300;
@@ -34,14 +61,24 @@ port(
 ); end phoenix_effect1;
 
 architecture struct of phoenix_effect1 is
+  -- command charge
+  constant Cmd_div: integer := integer(2**Cmd_Div2n);
+  constant Cmd_VFc: real := (Cmd_V*Cmd_R2 + Cmd_Vd*Cmd_R1)/(Cmd_R1 + Cmd_R2); -- V
+  constant Cmd_RCc: real := Cmd_R1*Cmd_R2/(Cmd_R1 + Cmd_R2)*Cmd_C/1000.0; -- s
+  constant Cmd_ikc: integer := integer(floor(Cmd_RCc/2**Cmd_Div2n * Cmd_Fs * 1.0E6));
+  constant Cmd_iVFc: integer := integer(floor(Cmd_VFc/Vmax*IVmax));
+  constant Cmd_VFd: real := (Cmd_V/Cmd_R1+Cmd_Vd/Cmd_R2+(Cmd_Vd+Cmd_Vce)/Cmd_R3)/(1/Cmd_R1+1/Cmd_R2+1/Cmd_R3); -- V
+  constant Cmd_RCd: real := 1.0/(1.0/Cmd_R1+1.0/Cmd_R2+1.0/Cmd_R3)*Cmd_C/1000.0; -- s
+  constant Cmd_ikd: integer := integer(floor(Cmd_RCd/2**Cmd_Div2n * Cmd_Fs * 1.0E6));
+  constant Cmd_iVFd: integer := integer(floor(Cmd_VFd/Vmax*IVmax));
 
- signal u_c1  : unsigned(15 downto 0) := (others => '0');
- signal u_c2  : unsigned(15 downto 0) := (others => '0');
- signal flip  : std_logic := '0';
+  signal u_c1  : unsigned(15 downto 0) := (others => '0');
+  signal u_c2  : unsigned(15 downto 0) := (others => '0');
+  signal flip  : std_logic := '0';
 
- signal u_cf  : unsigned(15 downto 0) := (others => '0');
+  signal u_cf  : unsigned(15 downto 0) := (others => '0');
 
- signal sound : std_logic := '0';
+  signal sound : std_logic := '0';
  
 begin
 
@@ -67,14 +104,14 @@ begin
   else
    cnt  := cnt + 1;
    if trigger = '1' then
-    if cnt > C_commande_k1 then
+    if cnt > Cmd_ikc then
      cnt := (others => '0');
-     u_c1 <= u_c1 + (C_commande_VF1 - u_c1)/256;
+     u_c1 <= u_c1 + (Cmd_iVFc - u_c1)/Cmd_div;
     end if;
    else
-    if cnt > C_commande_k2 then
+    if cnt > Cmd_ikd then
      cnt := (others => '0');
-     u_c1 <= u_c1 - (u_c1 - C_commande_VF2)/256; 
+     u_c1 <= u_c1 - (u_c1 - Cmd_iVFd)/Cmd_div;
     end if; 
    end if;
   end if;
