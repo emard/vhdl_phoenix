@@ -9,6 +9,29 @@ use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
 
 entity phoenix_effect3 is
+generic(
+  C_commande1_VF1: integer := 59507;
+  C_commande1_k1: integer := 14164;
+  C_commande1_VF2: integer := 8651;
+  C_commande1_k2: integer := 219;
+
+  C_commande2_VF1: integer := 57869;
+  C_commande2_k1: integer := 859;
+  C_commande2_VF2: integer := 0;
+  C_commande2_k2: integer := 31211;
+
+  C_commande2_chop_k: integer := 62500;
+
+  C_oscillateur_min_VF1: integer := 65535;
+  C_oscillateur_min_k1: integer := 469;
+  C_oscillateur_min_VF2: integer := 2621;
+  C_oscillateur_min_k2: integer := 10;
+
+  C_oscillateur_max_VF1: integer := 65535;
+  C_oscillateur_max_k1: integer := 35;
+  C_oscillateur_max_VF2: integer := 2621;
+  C_oscillateur_max_k2: integer := 10
+);
 port(
  clk50    : in std_logic;
  clk10    : in std_logic;
@@ -53,14 +76,14 @@ begin
   else
    cnt  := cnt + 1;
    if trigger1 = '1' then
-    if cnt > 5666 then
+    if cnt > C_commande1_k1 then
      cnt := (others => '0');
-     u_c1 <= u_c1 + (59507 - u_c1)/256;
+     u_c1 <= u_c1 + (C_commande1_VF1 - u_c1)/256;
     end if;
    else
-    if cnt > 88 then
+    if cnt > C_commande1_k2 then
      cnt := (others => '0');
-     u_c1 <= u_c1 - (u_c1 - 8651)/256; 
+     u_c1 <= u_c1 - (u_c1 - C_commande1_VF2)/256; 
     end if; 
    end if;
   end if;
@@ -83,14 +106,14 @@ begin
   else
    cnt  := cnt + 1;
    if trigger2 = '1' then
-    if cnt > 344 then
+    if cnt > C_commande2_k1 then
      cnt := (others => '0');
-     u_c2 <= u_c2 + (57869 - u_c2)/256;
+     u_c2 <= u_c2 + (C_commande2_VF1 - u_c2)/256;
     end if;
    else
-    if cnt > 12484 then
+    if cnt > C_commande2_k2 then
      cnt := (others => '0');
-     u_c2 <= u_c2 - (u_c2 - 0)/256; 
+     u_c2 <= u_c2 - (u_c2 - C_commande2_VF2)/256; 
     end if; 
    end if;
   end if;
@@ -99,13 +122,13 @@ end process;
 
 -- control voltage from command1 is R3 voltage (not u_c1 voltage)   
 with trigger1 select
-u_ctrl1 <= (to_unsigned(59507,16) - u_c1) when '1', (others=>'0') when others;
+u_ctrl1 <= (to_unsigned(C_commande1_VF1,16) - u_c1) when '1', (others=>'0') when others;
 
 -- control voltage from command2 is u_c2 voltage
 u_ctrl2 <= u_c2;
 
 -- sum up and scaled both control voltages to vary R1 resistor of oscillator
-k_ch <= shift_right(((u_ctrl1/2 + u_ctrl2/2) * to_unsigned(868,10)),15) + 69;  
+k_ch <= shift_right(((u_ctrl1/2 + u_ctrl2/2) * to_unsigned(C_oscillateur_min_k1-C_oscillateur_max_k1,10)),15) + C_oscillateur_max_k1;  
 
 -- Oscillateur
 -- R1 = 47k..2.533k, R2 = 1k, C=0.05e-6, SR=50MHz
@@ -127,12 +150,12 @@ begin
    if flip3 = '1' then
     if cnt > k_ch then
      cnt := (others => '0');
-     u_c3 <= u_c3 + (65535 - u_c3)/128;
+     u_c3 <= u_c3 + (C_oscillateur_min_VF1 - u_c3)/128;
     end if;
    else
-    if cnt > 20 then
+    if cnt > C_oscillateur_max_k2 then
      cnt := (others => '0');
-     u_c3 <= u_c3 - (u_c3 - 2621)/128; 
+     u_c3 <= u_c3 - (u_c3 - C_oscillateur_max_VF2)/128; 
     end if; 
    end if;
   end if;
@@ -154,12 +177,13 @@ u_ctrl1_f <= u_ctrl1(15 downto 8)/2 when '0', (others => '0') when others;
 
 -- modulated (chop) command2 voltage with noise generator output
 -- and add 400Hz filter (raw sub-sampling)
+-- f=10 MHz, k = 25000
 process (clk10)
  variable cnt  : unsigned(15 downto 0) := (others => '0');
 begin
  if rising_edge(clk10) then
   cnt  := cnt + 1;
-  if cnt > 25000 then
+  if cnt > C_commande2_chop_k then
    cnt := (others => '0');
    if (shift_reg(17) xor shift_reg(16)) = '0' then
     u_ctrl2_f <= u_ctrl2(15 downto 8)/2;
