@@ -14,27 +14,66 @@ use ieee.numeric_std.all;
 
 entity phoenix_effect3 is
 generic(
-  C_commande1_VF1: integer := 59507;
-  C_commande1_k1: integer := 14164;
-  C_commande1_VF2: integer := 8651;
-  C_commande1_k2: integer := 219;
+ -- Command 1
+ Cmd1_Fs: real := 25.0; -- MHz
+ Cmd1_V: real := 5.0; -- V
+ Cmd1_Vd: real := 0.46; -- V
+ Cmd1_Vce: real := 0.2; -- V
+ Cmd1_R1: real := 1.0; -- k
+ Cmd1_R2: real := 0.33; -- k
+ Cmd1_R3: real := 20.0; -- k
+ Cmd1_C: real := 6.8; -- uF
+ Cmd1_Div2n: integer := 8; -- bits divisor
+ --Cmd1_bits: integer := 16; -- bits counter
+ -- Command 2
+ Cmd2_Fs: real := 25.0; -- MHz
+ Cmd2_V: real := 5.0; -- V
+ Cmd2_Vd: real := 0.46; -- V
+ Cmd2_Vce: real := 0.2; -- V
+ Cmd2_R1: real := 1.0; -- k
+ Cmd2_R2: real := 0.33; -- k
+ Cmd2_R3: real := 47.0; -- k
+ Cmd2_C: real := 6.8; -- uF
+ Cmd2_Div2n: integer := 8; -- bits divisor
+ --Cmd2_bits: integer := 16; -- bits counter
+ -- Oscillator
+ Osc_Fs: real := 25.0; -- MHz
+ Osc_Vb: real := 5.0; -- V
+ Osc_Vce: real := 0.2; -- V
+ Oscmin_R1a: real := 47.0; -- k
+ Oscmin_R2: real := 0.33; -- k
+ Oscmin_C: real := 0.05; -- uF
+ Oscmin_bits: integer := 16; -- bits counter
+ Oscmax_R1a: real := 2.553; -- k
+ Oscmax_R2: real := 1.0; -- k
+ Oscmax_C: real := 0.05; -- uF
+ Osc_Div2n: integer := 7; -- bits divisor
+ --Osc_bits: integer := 16; -- bits counter
 
-  C_commande2_VF1: integer := 57869;
-  C_commande2_k1: integer := 859;
-  C_commande2_VF2: integer := 0;
-  C_commande2_k2: integer := 31211;
+ C_commande2_chop_k: integer := 62500;
 
-  C_commande2_chop_k: integer := 62500;
+ -- C_commande1_VF1: integer := 59507;
+ -- C_commande1_k1: integer := 14164;
+ -- C_commande1_VF2: integer := 8651;
+ -- C_commande1_k2: integer := 219;
 
-  C_oscillateur_min_VF1: integer := 65535;
-  C_oscillateur_min_k1: integer := 469;
-  C_oscillateur_min_VF2: integer := 2621;
-  C_oscillateur_min_k2: integer := 10;
+ -- C_commande2_VF1: integer := 57869;
+ -- C_commande2_k1: integer := 859;
+ -- C_commande2_VF2: integer := 0;
+ -- C_commande2_k2: integer := 31211;
 
-  C_oscillateur_max_VF1: integer := 65535;
-  C_oscillateur_max_k1: integer := 35;
-  C_oscillateur_max_VF2: integer := 2621;
-  C_oscillateur_max_k2: integer := 10
+ -- C_oscillateur_min_VF1: integer := 65535;
+ -- C_oscillateur_min_k1: integer := 469;
+ -- C_oscillateur_min_VF2: integer := 2621;
+ -- C_oscillateur_min_k2: integer := 10;
+
+ -- C_oscillateur_max_VF1: integer := 65535;
+ -- C_oscillateur_max_k1: integer := 35;
+ -- C_oscillateur_max_VF2: integer := 2621;
+ -- C_oscillateur_max_k2: integer := 10;
+
+ Vmax: real := 5.0; -- V
+ Vmax_bits: integer := 16 -- number of bits to represent Vmax
 );
 port(
  clk50    : in std_logic;
@@ -46,6 +85,58 @@ port(
 ); end phoenix_effect3;
 
 architecture struct of phoenix_effect3 is
+ -- integer representation of voltage, full range
+ constant IVmax: integer := integer(2**Vmax_bits)-1;
+ -- Command1 --
+ constant Cmd1_div: integer := integer(2**Cmd1_Div2n);
+ -- Command1 charge/discharge voltages
+ constant Cmd1_VFc: real := Cmd1_V-Cmd1_Vd; -- V
+ constant Cmd1_iVFc: integer := integer(Cmd1_VFc*IVmax/Vmax);
+ constant Cmd1_VFd: real := Cmd1_Vce+Cmd1_Vd; -- V
+ constant Cmd1_iVFd: integer := integer(Cmd1_VFd*IVmax/Vmax);
+ -- Command1 charge/discharge time constants
+ constant Cmd1_RCc: real := (Cmd1_R1+Cmd1_R2+Cmd1_R3)*Cmd1_C/1000.0; -- s
+ constant Cmd1_ikc: integer := integer(Cmd1_Fs * 1.0E6 * Cmd1_RCc / 2.0**Cmd1_Div2n);
+ constant Cmd1_RCd: real := Cmd1_R2*Cmd1_C/1000.0; -- s
+ constant Cmd1_ikd: integer := integer(Cmd1_Fs * 1.0E6 * Cmd1_RCd / 2.0**Cmd1_Div2n);
+ -- Command2 --
+ constant Cmd2_div: integer := integer(2**Cmd2_Div2n);
+ -- Command2 charge/discharge voltages
+ constant Cmd2_VFc: real := (Cmd2_V-Cmd2_Vd)*Cmd2_R3/(Cmd2_R1+Cmd2_R2+Cmd2_R3); -- V
+ constant Cmd2_iVFc: integer := integer(Cmd2_VFc*IVmax/Vmax);
+ constant Cmd2_VFd: real := 0.0; -- V
+ constant Cmd2_iVFd: integer := integer(Cmd2_VFd*IVmax/Vmax);
+ -- Command2 charge/discharge time constants
+ constant Cmd2_RCc: real := (Cmd2_R1+Cmd2_R2)*Cmd2_R3/(Cmd2_R1+Cmd2_R2+Cmd2_R3)*Cmd2_C/1000.0; -- s
+ constant Cmd2_ikc: integer := integer(Cmd2_Fs * 1.0E6 * Cmd2_RCc / 2.0**Cmd2_Div2n);
+ constant Cmd2_RCd: real := Cmd2_R3*Cmd2_C/1000.0; -- s
+ constant Cmd2_ikd: integer := integer(Cmd2_Fs * 1.0E6 * Cmd2_RCd / 2.0**Cmd2_Div2n);
+ -- Oscillator --
+ constant Osc_div: integer := integer(2**Osc_Div2n);
+ -- Oscillator charge/discharge voltages
+ constant Osc_VFc: real := Osc_Vb; -- V
+ constant Osc_iVFc: integer := integer(Osc_VFc*IVmax/Vmax);
+ constant Osc_VFd: real := Osc_Vce; -- V
+ constant Osc_iVFd: integer := integer(Osc_VFd*IVmax/Vmax);
+ -- Oscillator min charge/discharge time constants
+ constant Oscmin_RCc: real := (Oscmin_R1a+Oscmin_R2)*Oscmin_C/1000.0; -- s
+ constant Oscmin_ikc: integer := integer(Osc_Fs * 1.0E6 * Oscmin_RCc / 2.0**Osc_Div2n);
+ constant Oscmin_RCd: real := Oscmin_R2*Oscmin_C/1000.0; -- s
+ constant Oscmin_ikd: integer := integer(Osc_Fs * 1.0E6 * Oscmin_RCd / 2.0**Osc_Div2n);
+ -- Oscillator max charge/discharge time constants
+ constant Oscmax_RCc: real := (Oscmax_R1a+Oscmax_R2)*Oscmax_C/1000.0; -- s
+ constant Oscmax_ikc: integer := integer(Osc_Fs * 1.0E6 * Oscmax_RCc / 2.0**Osc_Div2n);
+ constant Oscmax_RCd: real := Oscmax_R2*Oscmax_C/1000.0; -- s
+ constant Oscmax_ikd: integer := integer(Osc_Fs * 1.0E6 * Oscmax_RCd / 2.0**Osc_Div2n);
+
+ function imax(x,y: integer) return integer is
+ begin
+  if x > y then
+   return x;
+  else
+   return y;
+  end if;
+ end imax;
 
  signal u_c1  : unsigned(15 downto 0) := (others => '0');
  signal u_c2  : unsigned(15 downto 0) := (others => '0');
@@ -71,23 +162,28 @@ begin
 -- Div = 2^8
 
 process (clk10)
- variable cnt  : unsigned(15 downto 0) := (others => '0');
+ -- variable cnt  : unsigned(15 downto 0) := (others => '0');
+ variable cnt: integer range 0 to imax(Cmd1_ikc,Cmd1_ikd)*2 := 0;
 begin
  if rising_edge(clk10) then
   if reset = '1' then
-   cnt  := (others => '0');
+   cnt  := 0;
    u_c1 <= (others => '0');
   else
    cnt  := cnt + 1;
    if trigger1 = '1' then
-    if cnt > C_commande1_k1 then
-     cnt := (others => '0');
-     u_c1 <= u_c1 + (C_commande1_VF1 - u_c1)/256;
+    -- if cnt > C_commande1_k1 then
+    if cnt > Cmd1_ikc then
+     cnt := 0;
+     -- u_c1 <= u_c1 + (C_commande1_VF1 - u_c1)/256;
+     u_c1 <= u_c1 + (Cmd1_iVFc - u_c1)/Cmd1_div;
     end if;
    else
-    if cnt > C_commande1_k2 then
-     cnt := (others => '0');
-     u_c1 <= u_c1 - (u_c1 - C_commande1_VF2)/256; 
+    -- if cnt > C_commande1_k2 then
+    if cnt > Cmd1_ikd then
+     cnt := 0;
+     -- u_c1 <= u_c1 - (u_c1 - C_commande1_VF2)/256; 
+     u_c1 <= u_c1 - (u_c1 - Cmd1_iVFd)/Cmd1_div; 
     end if; 
    end if;
   end if;
@@ -101,23 +197,31 @@ end process;
 -- Div = 2^8
 
 process (clk10)
- variable cnt  : unsigned(15 downto 0) := (others => '0');
+ -- variable cnt  : unsigned(15 downto 0) := (others => '0');
+ variable cnt: integer range 0 to imax(Cmd2_ikc,Cmd2_ikd)*2 := 0;
 begin
  if rising_edge(clk10) then
   if reset = '1' then
-   cnt  := (others => '0');
+   -- cnt  := (others => '0');
+   cnt  := 0;
    u_c2 <= (others => '0');
   else
-   cnt  := cnt + 1;
+   cnt := cnt + 1;
    if trigger2 = '1' then
-    if cnt > C_commande2_k1 then
-     cnt := (others => '0');
-     u_c2 <= u_c2 + (C_commande2_VF1 - u_c2)/256;
+    -- if cnt > C_commande2_k1 then
+    if cnt > Cmd2_ikc then
+     -- cnt := (others => '0');
+     cnt := 0;
+     -- u_c2 <= u_c2 + (C_commande2_VF1 - u_c2)/256;
+     u_c2 <= u_c2 + (Cmd2_iVFc - u_c2)/Cmd2_div;
     end if;
    else
-    if cnt > C_commande2_k2 then
-     cnt := (others => '0');
-     u_c2 <= u_c2 - (u_c2 - C_commande2_VF2)/256; 
+    -- if cnt > C_commande2_k2 then
+    if cnt > Cmd2_ikd then
+     -- cnt := (others => '0');
+     cnt := 0;
+     -- u_c2 <= u_c2 - (u_c2 - C_commande2_VF2)/256; 
+     u_c2 <= u_c2 - (u_c2 - Cmd2_iVFd)/Cmd2_div; 
     end if; 
    end if;
   end if;
@@ -126,13 +230,15 @@ end process;
 
 -- control voltage from command1 is R3 voltage (not u_c1 voltage)   
 with trigger1 select
-u_ctrl1 <= (to_unsigned(C_commande1_VF1,16) - u_c1) when '1', (others=>'0') when others;
+-- u_ctrl1 <= (to_unsigned(C_commande1_VF1,16) - u_c1) when '1', (others=>'0') when others;
+u_ctrl1 <= (to_unsigned(Cmd1_iVFc,16) - u_c1) when '1', (others=>'0') when others;
 
 -- control voltage from command2 is u_c2 voltage
 u_ctrl2 <= u_c2;
 
 -- sum up and scaled both control voltages to vary R1 resistor of oscillator
-k_ch <= shift_right(((u_ctrl1/2 + u_ctrl2/2) * to_unsigned(C_oscillateur_min_k1-C_oscillateur_max_k1,10)),15) + C_oscillateur_max_k1;  
+-- k_ch <= shift_right(((u_ctrl1/2 + u_ctrl2/2) * to_unsigned(C_oscillateur_min_k1-C_oscillateur_max_k1,10)),15) + C_oscillateur_max_k1;
+k_ch <= shift_right(((u_ctrl1/2 + u_ctrl2/2) * to_unsigned(Oscmin_ikc-Oscmax_ikc,10)),15) + Oscmax_ikc;
 
 -- Oscillateur
 -- R1 = 47k..2.533k, R2 = 1k, C=0.05e-6, SR=50MHz
@@ -141,25 +247,25 @@ k_ch <= shift_right(((u_ctrl1/2 + u_ctrl2/2) * to_unsigned(C_oscillateur_min_k1-
 -- Div = 2^7
 
 process (clk50)
- variable cnt  : unsigned(15 downto 0) := (others => '0');
+ variable cnt: integer range 0 to imax(imax(Oscmin_ikc,Oscmin_ikd), imax(Oscmax_ikc,Oscmax_ikd))+256 := 0;
 begin
  if rising_edge(clk50) then
   if reset = '1' then
-   cnt  := (others => '0');
+   cnt  := 0;
    u_c3 <= (others => '0');
   else
    if u_c3 > X"AAAA" then flip3 <= '0'; end if;
    if u_c3 < X"5555" then flip3 <= '1'; end if; 
-   cnt  := cnt + 1;
+   cnt := cnt + 1;
    if flip3 = '1' then
     if cnt > k_ch then
-     cnt := (others => '0');
-     u_c3 <= u_c3 + (C_oscillateur_min_VF1 - u_c3)/128;
+     cnt := 0;
+     u_c3 <= u_c3 + (Osc_iVFc - u_c3)/Osc_div;
     end if;
    else
-    if cnt > C_oscillateur_max_k2 then
-     cnt := (others => '0');
-     u_c3 <= u_c3 - (u_c3 - C_oscillateur_max_VF2)/128; 
+    if cnt > Oscmax_ikd then
+     cnt := 0;
+     u_c3 <= u_c3 - (u_c3 - Osc_iVFd)/Osc_div;
     end if; 
    end if;
   end if;
