@@ -91,9 +91,9 @@ architecture struct of phoenix_effect3 is
  constant Cmd1_div: integer := integer(2**Cmd1_Div2n);
  -- Command1 charge/discharge voltages
  constant Cmd1_VFc: real := Cmd1_V-Cmd1_Vd; -- V
- constant Cmd1_iVFc: integer := integer(Cmd1_VFc*IVmax/Vmax);
+ constant Cmd1_iVFc: integer := integer(Cmd1_VFc * real(IVmax)/Vmax);
  constant Cmd1_VFd: real := Cmd1_Vce+Cmd1_Vd; -- V
- constant Cmd1_iVFd: integer := integer(Cmd1_VFd*IVmax/Vmax);
+ constant Cmd1_iVFd: integer := integer(Cmd1_VFd * real(IVmax)/Vmax);
  -- Command1 charge/discharge time constants
  constant Cmd1_RCc: real := (Cmd1_R1+Cmd1_R2+Cmd1_R3)*Cmd1_C/1000.0; -- s
  constant Cmd1_ikc: integer := integer(Cmd1_Fs * 1.0E6 * Cmd1_RCc / 2.0**Cmd1_Div2n);
@@ -103,9 +103,9 @@ architecture struct of phoenix_effect3 is
  constant Cmd2_div: integer := integer(2**Cmd2_Div2n);
  -- Command2 charge/discharge voltages
  constant Cmd2_VFc: real := (Cmd2_V-Cmd2_Vd)*Cmd2_R3/(Cmd2_R1+Cmd2_R2+Cmd2_R3); -- V
- constant Cmd2_iVFc: integer := integer(Cmd2_VFc*IVmax/Vmax);
+ constant Cmd2_iVFc: integer := integer(Cmd2_VFc * real(IVmax)/Vmax);
  constant Cmd2_VFd: real := 0.0; -- V
- constant Cmd2_iVFd: integer := integer(Cmd2_VFd*IVmax/Vmax);
+ constant Cmd2_iVFd: integer := integer(Cmd2_VFd * real(IVmax)/Vmax);
  -- Command2 charge/discharge time constants
  constant Cmd2_RCc: real := (Cmd2_R1+Cmd2_R2)*Cmd2_R3/(Cmd2_R1+Cmd2_R2+Cmd2_R3)*Cmd2_C/1000.0; -- s
  constant Cmd2_ikc: integer := integer(Cmd2_Fs * 1.0E6 * Cmd2_RCc / 2.0**Cmd2_Div2n);
@@ -115,9 +115,9 @@ architecture struct of phoenix_effect3 is
  constant Osc_div: integer := integer(2**Osc_Div2n);
  -- Oscillator charge/discharge voltages
  constant Osc_VFc: real := Osc_Vb; -- V
- constant Osc_iVFc: integer := integer(Osc_VFc*IVmax/Vmax);
+ constant Osc_iVFc: integer := integer(Osc_VFc * real(IVmax)/Vmax);
  constant Osc_VFd: real := Osc_Vce; -- V
- constant Osc_iVFd: integer := integer(Osc_VFd*IVmax/Vmax);
+ constant Osc_iVFd: integer := integer(Osc_VFd * real(IVmax)/Vmax);
  -- Oscillator min charge/discharge time constants
  constant Oscmin_RCc: real := (Oscmin_R1a+Oscmin_R2)*Oscmin_C/1000.0; -- s
  constant Oscmin_ikc: integer := integer(Osc_Fs * 1.0E6 * Oscmin_RCc / 2.0**Osc_Div2n);

@@ -81,12 +81,12 @@ architecture struct of phoenix_effect1 is
  constant Cmd_VFc: real := (Cmd_V*Cmd_R2 + Cmd_Vd*Cmd_R1)/(Cmd_R1 + Cmd_R2); -- V
  constant Cmd_RCc: real := Cmd_R1*Cmd_R2/(Cmd_R1 + Cmd_R2)*Cmd_C/1000.0; -- s
  constant Cmd_ikc: integer := integer(Cmd_Fs * 1.0E6 * Cmd_RCc / 2.0**Cmd_Div2n);
- constant Cmd_iVFc: integer := integer(Cmd_VFc*IVmax/Vmax);
+ constant Cmd_iVFc: integer := integer(Cmd_VFc * real(IVmax)/Vmax);
  -- command discharge
- constant Cmd_VFd: real := (Cmd_V/Cmd_R1+Cmd_Vd/Cmd_R2+(Cmd_Vd+Cmd_Vce)/Cmd_R3)/(1/Cmd_R1+1/Cmd_R2+1/Cmd_R3); -- V
+ constant Cmd_VFd: real := (Cmd_V/Cmd_R1+Cmd_Vd/Cmd_R2+(Cmd_Vd+Cmd_Vce)/Cmd_R3)/(1.0/Cmd_R1+1.0/Cmd_R2+1.0/Cmd_R3); -- V
  constant Cmd_RCd: real := 1.0/(1.0/Cmd_R1+1.0/Cmd_R2+1.0/Cmd_R3)*Cmd_C/1000.0; -- s
  constant Cmd_ikd: integer := integer(Cmd_Fs * 1.0E6 * Cmd_RCd / 2.0**Cmd_Div2n);
- constant Cmd_iVFd: integer := integer(Cmd_VFd*IVmax/Vmax);
+ constant Cmd_iVFd: integer := integer(Cmd_VFd * real(IVmax)/Vmax);
 
  -- oscillator
  constant Osc_div: integer := integer(2**Osc_Div2n);
@@ -94,12 +94,12 @@ architecture struct of phoenix_effect1 is
  constant Osc_VFc: real := Osc_Vb; -- V
  constant Osc_RCc: real := (Osc_R1+Osc_R2)*Osc_C/1000.0; -- s
  constant Osc_ikc: integer := integer(Osc_Fs * 1.0E6 * Osc_RCc / 2.0**Osc_Div2n);
- constant Osc_iVFc: integer := integer(Osc_VFc*IVmax/Vmax);
+ constant Osc_iVFc: integer := integer(Osc_VFc * real(IVmax)/Vmax);
  -- oscillator discharge
  constant Osc_VFd: real := Osc_Vce; -- V
  constant Osc_RCd: real := Osc_R2*Osc_C/1000.0; -- s
  constant Osc_ikd: integer := integer(Osc_Fs * 1.0E6 * Osc_RCd / 2.0**Osc_Div2n);
- constant Osc_iVFd: integer := integer(Osc_VFd*IVmax/Vmax);
+ constant Osc_iVFd: integer := integer(Osc_VFd * real(IVmax)/Vmax);
 
  -- filter
  constant Filt_div: integer := integer(2**Filt_Div2n);
@@ -107,12 +107,12 @@ architecture struct of phoenix_effect1 is
  constant Filt_VFc: real := Filt_V1; -- V
  constant Filt_RCc: real := 1.0/(1.0/Filt_R1+1.0/Filt_R2)*Filt_C/1000.0; -- s
  constant Filt_ikc: integer := integer(Filt_Fs * 1.0E6 * Filt_RCc / 2.0**Filt_Div2n);
- constant Filt_iVFc: integer := integer(Filt_VFc*IVmax/Vmax);
+ constant Filt_iVFc: integer := integer(Filt_VFc * real(IVmax)/Vmax);
  -- filter discharge
  constant Filt_VFd: real := Filt_V2; -- V
  constant Filt_RCd: real := Filt_RCc; -- s
  constant Filt_ikd: integer := integer(Filt_Fs * 1.0E6 * Filt_RCd / 2.0**Filt_Div2n);
- constant Filt_iVFd: integer := integer(Filt_VFd*IVmax/Vmax);
+ constant Filt_iVFd: integer := integer(Filt_VFd * real(IVmax)/Vmax);
 
  function imax(x,y: integer) return integer is
  begin

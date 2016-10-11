@@ -120,9 +120,9 @@ architecture struct of phoenix_effect2 is
  constant Osc1_div: integer := integer(2**Osc1_Div2n);
  -- Oscillator1 charge/discharge voltages
  constant Osc1_VFc: real := Osc1_Vb; -- V
- constant Osc1_iVFc: integer := integer(Osc1_VFc*IVmax/Vmax);
+ constant Osc1_iVFc: integer := integer(Osc1_VFc * real(IVmax)/Vmax);
  constant Osc1_VFd: real := Osc1_Vce; -- V
- constant Osc1_iVFd: integer := integer(Osc1_VFd*IVmax/Vmax);
+ constant Osc1_iVFd: integer := integer(Osc1_VFd * real(IVmax)/Vmax);
  -- Oscillator1 charge/discharge time constants
  constant Osc1_T0_RCc: real := (Osc1_R1+Osc1_R2)*Osc1_C1/1000.0; -- s
  constant Osc1_T0_ikc: integer := integer(Osc1_Fs * 1.0E6 * Osc1_T0_RCc / 2.0**Osc1_Div2n);
@@ -150,9 +150,9 @@ architecture struct of phoenix_effect2 is
  constant Osc2_div: integer := integer(2**Osc2_Div2n);
  -- Oscillator2 charge/discharge voltages
  constant Osc2_VFc: real := Osc2_Vb; -- V
- constant Osc2_iVFc: integer := integer(Osc2_VFc*IVmax/Vmax);
+ constant Osc2_iVFc: integer := integer(Osc2_VFc * real(IVmax)/Vmax);
  constant Osc2_VFd: real := Osc2_Vce; -- V
- constant Osc2_iVFd: integer := integer(Osc2_VFd*IVmax/Vmax);
+ constant Osc2_iVFd: integer := integer(Osc2_VFd * real(IVmax)/Vmax);
  -- Oscillator2 charge/discharge time constants
  constant Osc2_RCc: real := (Osc2_R1+Osc2_R2)*Osc2_C/1000.0; -- s
  constant Osc2_ikc: integer := integer(Osc2_Fs * 1.0E6 * Osc2_RCc / 2.0**Osc2_Div2n);
@@ -169,21 +169,21 @@ architecture struct of phoenix_effect2 is
  constant Filt2_ik: integer := integer(Filt2_Fs*1.0E6*Filt2_RC / 2.0**Filt2_Div2n);
  -- Filter2 voltages
  constant Filt2_V0: real := Filt2_V*Filt2_Rp*Filt2_Rs/(Filt2_R3*Filt2_R4); -- V
- constant Filt2_iV0: integer := integer(Filt2_V0*IVmax/Vmax);
+ constant Filt2_iV0: integer := integer(Filt2_V0 * real(IVmax)/Vmax);
  constant Filt2_V1: real := Filt2_V*Filt2_Rp*Filt2_Rs/(Filt2_R4p*Filt2_R3); -- V
- constant Filt2_iV1: integer := integer(Filt2_V1*IVmax/Vmax);
+ constant Filt2_iV1: integer := integer(Filt2_V1 * real(IVmax)/Vmax);
  constant Filt2_V2: real := Filt2_V*Filt2_Rp*Filt2_Rs/(Filt2_R3*Filt2_R4)+Filt2_V*Filt2_Rs/Filt2_R2; -- V
- constant Filt2_iV2: integer := integer(Filt2_V2*IVmax/Vmax);
+ constant Filt2_iV2: integer := integer(Filt2_V2 * real(IVmax)/Vmax);
  constant Filt2_V3: real := Filt2_V*Filt2_Rp*Filt2_Rs/(Filt2_R3*Filt2_R4p)+Filt2_V*Filt2_Rs/Filt2_R2; -- V
- constant Filt2_iV3: integer := integer(Filt2_V3*IVmax/Vmax);
+ constant Filt2_iV3: integer := integer(Filt2_V3 * real(IVmax)/Vmax);
 
  -- Oscillator3 --
  constant Osc3_div: integer := integer(2**Osc3_Div2n);
  -- Oscillator3 charge/discharge voltages
  constant Osc3_VFc: real := Osc3_Vb; -- V
- constant Osc3_iVFc: integer := integer(Osc3_VFc*IVmax/Vmax);
+ constant Osc3_iVFc: integer := integer(Osc3_VFc * real(IVmax)/Vmax);
  constant Osc3_VFd: real := Osc3_Vce; -- V
- constant Osc3_iVFd: integer := integer(Osc3_VFd*IVmax/Vmax);
+ constant Osc3_iVFd: integer := integer(Osc3_VFd * real(IVmax)/Vmax);
  -- Oscillator3 charge/discharge time constants
  constant Osc3_RCc: real := (Osc3_R1+Osc3_R2)*Osc3_C/1000.0; -- s
  constant Osc3_ikc: integer := integer(Osc3_Fs * 1.0E6 * Osc3_RCc / 2.0**Osc3_Div2n);
