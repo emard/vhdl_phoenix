@@ -35,14 +35,14 @@ use ieee.numeric_std.all;
 entity phoenix_tb276 is
 generic
 (
-  C_hdmi_generic_serializer: boolean := true; -- serializer type: false: vendor-specific, true: generic=vendor-agnostic
+  C_hdmi_generic_serializer: boolean := false; -- serializer type: false: vendor-specific, true: generic=vendor-agnostic
   C_hdmi_audio: boolean := true -- HDMI generator type: false: video only, true: video+audio capable
 );
 port
 (
   clk_25m: in std_logic;
   led: out std_logic_vector(7 downto 0);
-  gpio: inout std_logic_vector(31 downto 0);
+  gpio: inout std_logic_vector(47 downto 0);
   hdmi_d: out std_logic_vector(2 downto 0);
   hdmi_clk: out std_logic;
   btn_left, btn_right: in std_logic
@@ -94,13 +94,13 @@ begin
     clk_pixel    => clk_pixel,
     reset        => reset,
     dip_switch   => dip_switch,
-    btn_coin     => not btn_left,
-    btn_player_start(0) => not btn_right,
-    btn_player_start(1) => not gpio(2),
-    btn_left     => not gpio(3),
-    btn_right    => not gpio(4),
-    btn_barrier  => not gpio(5),
-    btn_fire     => not gpio(6),
+    btn_coin     => (not gpio(0)) or (not btn_right),
+    btn_player_start(0) => (not gpio(2)) or (not btn_left),
+    btn_player_start(1) => not gpio(4),
+    btn_left     => not gpio(6),
+    btn_right    => not gpio(8),
+    btn_barrier  => (not gpio(10)) or (not btn_right),
+    btn_fire     => (not gpio(12)) or (not btn_left),
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
@@ -110,12 +110,21 @@ begin
     audio        => S_audio
   );
 
+  -- virtual gnd's
+  gpio(1) <= '0';
+  gpio(3) <= '0';
+  gpio(5) <= '0';
+  gpio(7) <= '0';
+  gpio(9) <= '0';
+  gpio(11) <= '0';
+  gpio(13) <= '0';
+
   -- some debugging with LEDs
   led(0) <= not gpio(0);
-  led(1) <= (not gpio(1)) or (not gpio(2));
-  led(2) <= not gpio(3);
-  led(3) <= not gpio(4);
-  led(4) <= (not gpio(5)) or (not gpio(6));
+  led(1) <= (not gpio(2)) or (not gpio(4));
+  led(2) <= not gpio(6);
+  led(3) <= not gpio(8);
+  led(4) <= (not gpio(10)) or (not gpio(12));
   led(5) <= S_vga_r(1); -- when game works, changing color on
   led(6) <= S_vga_g(1); -- large area of the screen should
   led(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
@@ -186,7 +195,7 @@ begin
     I_BLANK        => S_vga_blank,
     I_HSYNC        => not S_vga_hsync,
     I_VSYNC        => not S_vga_vsync,
-    I_AUDIO_ENABLE => btn_right, -- press right button to disable audio (generate only video)
+    I_AUDIO_ENABLE => not gpio(46), -- set jumper on pins 75-76 to disable audio (generate only video)
     I_AUDIO_PCM_L  => S_audio & "0000",
     I_AUDIO_PCM_R  => S_audio & "0000",
     O_TMDS_D0      => HDMI_D(0),
@@ -195,6 +204,6 @@ begin
     O_TMDS_CLK     => HDMI_CLK
   );
   end generate;
-  
+  gpio(47) <= '0'; -- simulate GND for jumper to gpio(46)
   gpio(31 downto 20) <= S_audio;
 end struct;

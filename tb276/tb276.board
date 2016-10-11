@@ -12,7 +12,7 @@ set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulati
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
-set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "2.5 V"
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
 set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
 set_location_assignment PIN_25 -to clk_25m
@@ -125,11 +125,11 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to clk_25m
 # Warning: led[4:0] are connected to I/O bank 8.
 # Because MINI-LVDS_E_3R is enabled at I/O bank 7 and 8 for HDMI,
 # LED I/O standard can't be 3.3V (it can be 2.5V).
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[0]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[1]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[2]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[3]
-#set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[4]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to led[0]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to led[1]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to led[2]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to led[3]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to led[4]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[5]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[6]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to led[7]
@@ -201,15 +201,15 @@ set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[30]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[30]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[31]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[31]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[32]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to gpio[32]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[32]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[33]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to gpio[33]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[33]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[34]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to gpio[34]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[34]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[35]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to gpio[35]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[35]
-set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[36]
+set_instance_assignment -name IO_STANDARD "2.5 V" -to gpio[36]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[36]
 set_instance_assignment -name IO_STANDARD "3.3-V LVCMOS" -to gpio[37]
 set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to gpio[37]
