@@ -87,6 +87,7 @@ begin
   phoenix : entity work.phoenix
   generic map
   (
+    C_audio => true,
     C_vga => true
   )
   port map
@@ -195,7 +196,7 @@ begin
     I_BLANK        => S_vga_blank,
     I_HSYNC        => not S_vga_hsync,
     I_VSYNC        => not S_vga_vsync,
-    I_AUDIO_ENABLE => not gpio(46), -- set jumper on pins 75-76 to disable audio (generate only video)
+    I_AUDIO_ENABLE => not gpio(46), -- set jumper accross pins 75-76 to enable audio
     I_AUDIO_PCM_L  => S_audio & "0000",
     I_AUDIO_PCM_R  => S_audio & "0000",
     O_TMDS_D0      => HDMI_D(0),
