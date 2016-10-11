@@ -3,6 +3,10 @@
 -- http://darfpga.blogspot.fr
 ---------------------------------------------------------------------------------
 
+-- this module generates sound how the birds fly
+-- how they burn and the ship's barrier activation sound
+-- it is most often heard module througut all levels of the game
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.ALL;

@@ -3,6 +3,10 @@
 -- http://darfpga.blogspot.fr
 ---------------------------------------------------------------------------------
 
+-- this module generates noisy sound of ship missile shooting
+-- ship explosions and enemy mothership explosion
+-- it is often head throught all the levels of the game
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.ALL;

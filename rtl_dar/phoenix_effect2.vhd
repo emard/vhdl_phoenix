@@ -3,6 +3,14 @@
 -- http://darfpga.blogspot.fr
 ---------------------------------------------------------------------------------
 
+-- this module outputs sound of mothership's descend
+-- it could be heard at beginning of level 5
+-- the prrrrr...vioooouuuuu sound
+-- fixme:
+-- the VCO control levels are too coarse (quantized)
+-- frequency transitions are heard in large steps
+-- instead of continous sweep
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.ALL;
