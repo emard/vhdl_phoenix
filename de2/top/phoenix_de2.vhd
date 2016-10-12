@@ -42,6 +42,10 @@ port
 (
   CLOCK_50: in std_logic;
   ledr: out std_logic_vector(7 downto 0);
+  VGA_R, VGA_G, VGA_B: out std_logic_vector(9 downto 0);
+  VGA_HS, VGA_VS, VGA_CLK, VGA_BLANK, VGA_SYNC: out std_logic;
+  ps2_clk: in std_logic;
+  ps2_dat: in std_logic;
   gpio_0: inout std_logic_vector(35 downto 0)
   --hdmi_d: out std_logic_vector(2 downto 0);
   --hdmi_clk: out std_logic;
@@ -64,6 +68,14 @@ architecture struct of phoenix_de2 is
   signal hdmi_dp, hdmi_dn: std_logic_vector(2 downto 0);
   signal hdmi_clkp, hdmi_clkn: std_logic;
 
+  signal kbd_intr      : std_logic;
+  signal kbd_scancode  : std_logic_vector(7 downto 0);
+  signal JoyPCFRLDU    : std_logic_vector(7 downto 0);
+
+  signal coin         : std_logic;
+  signal player_start : std_logic_vector(1 downto 0);
+  signal button_left, button_right, button_protect, button_fire: std_logic;
+
   signal reset        : std_logic;
   signal clock_stable : std_logic;
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
@@ -82,6 +94,34 @@ begin
   reset <= not clock_stable;
   -- dip_switch(3 downto 0) <= sw(4 downto 1);
 
+  -- get scancode from keyboard
+  keybord : entity work.io_ps2_keyboard
+  port map (
+    clk       => clk_pixel,
+    kbd_clk   => ps2_clk,
+    kbd_dat   => ps2_dat,
+    interrupt => kbd_intr,
+    scancode  => kbd_scancode
+  );
+
+  -- translate scancode to joystick
+  Joystick : entity work.kbd_joystick
+  port map (
+    clk         => clk_pixel,
+    kbdint      => kbd_intr,
+    kbdscancode => std_logic_vector(kbd_scancode),
+    JoyPCFRLDU  => JoyPCFRLDU
+  );
+
+  -- joystick to inputs
+  coin            <= not JoyPCFRLDU(7); -- F3 : Add coin
+  player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
+  player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
+  button_fire     <= not JoyPCFRLDU(4); -- SPACE : Fire
+  button_right    <= not JoyPCFRLDU(3); -- RIGHT arrow : Right
+  button_left     <= not JoyPCFRLDU(2); -- LEFT arrow  : Left
+  button_protect  <= not JoyPCFRLDU(0); -- UP arrow : Protection
+
   phoenix : entity work.phoenix
   generic map
   (
@@ -93,13 +133,13 @@ begin
     clk_pixel    => clk_pixel,
     reset        => reset,
     dip_switch   => dip_switch,
-    btn_coin     => (not gpio_0(0)) or (not btn_right),
-    btn_player_start(0) => (not gpio_0(2)) or (not btn_left),
-    btn_player_start(1) => not gpio_0(4),
-    btn_left     => not gpio_0(6),
-    btn_right    => not gpio_0(8),
-    btn_barrier  => (not gpio_0(10)) or (not btn_right),
-    btn_fire     => (not gpio_0(12)) or (not btn_left),
+    btn_coin     => coin or (not gpio_0(0)),
+    btn_player_start(0) => player_start(0) or (not gpio_0(2)),
+    btn_player_start(1) => player_start(1) or (not gpio_0(4)),
+    btn_left     => button_left or not gpio_0(6),
+    btn_right    => button_right or not gpio_0(8),
+    btn_barrier  => button_protect or (not gpio_0(10)),
+    btn_fire     => button_fire or (not gpio_0(12)),
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
@@ -109,7 +149,7 @@ begin
     audio        => S_audio
   );
 
-  -- virtual gnd's
+  -- virtual GND's for GPIO controls
   gpio_0(1) <= '0';
   gpio_0(3) <= '0';
   gpio_0(5) <= '0';
@@ -117,6 +157,15 @@ begin
   gpio_0(9) <= '0';
   gpio_0(11) <= '0';
   gpio_0(13) <= '0';
+  
+  VGA_R(9 downto 8) <= S_vga_r; VGA_R(7 downto 0) <= (others => S_vga_r(0));
+  VGA_G(9 downto 8) <= S_vga_g; VGA_G(7 downto 0) <= (others => S_vga_g(0));
+  VGA_B(9 downto 8) <= S_vga_b; VGA_B(7 downto 0) <= (others => S_vga_b(0));
+  VGA_HS <= S_vga_hsync;
+  VGA_VS <= S_vga_vsync;
+  VGA_BLANK <= S_vga_blank;
+  VGA_SYNC <= S_vga_hsync or S_vga_vsync;
+  VGA_CLK <= clk_pixel;
 
   -- some debugging with LEDs
   ledr(0) <= not gpio_0(0);
