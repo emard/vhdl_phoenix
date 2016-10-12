@@ -150,8 +150,8 @@ set_property -dict {PACKAGE_PIN U22 IOSTANDARD TMDS_33} [get_ports VID_D_P[2]]
 #
 #	PWM Audio
 #
-#set_property -dict {PACKAGE_PIN W20 IOSTANDARD LVTTL DRIVE 4} [get_ports AUDIO_L]
-#set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVTTL DRIVE 4} [get_ports AUDIO_R]
+set_property -dict {PACKAGE_PIN W20 IOSTANDARD LVTTL DRIVE 4} [get_ports AUDIO_L]
+set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVTTL DRIVE 4} [get_ports AUDIO_R]
 
 #
 #	DisplayPort

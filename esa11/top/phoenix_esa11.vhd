@@ -43,6 +43,8 @@ port
   M_LED: out std_logic_vector(7 downto 0);
   -- PS/2 keyboard
   PS2_A_DATA, PS2_A_CLK, PS2_B_DATA, PS2_B_CLK: inout std_logic;
+  -- AUDIO
+  AUDIO_L, AUDIO_R: out std_logic;
   -- HDMI
   VID_D_P, VID_D_N: out std_logic_vector(2 downto 0);
   VID_CLK_P, VID_CLK_N: out std_logic;
@@ -70,6 +72,15 @@ architecture struct of phoenix_esa11 is
   end component clk_d100_100_200_125_25MHz;
 
   signal clk_pixel, clk_pixel_shift: std_logic;
+
+  signal kbd_intr      : std_logic;
+  signal kbd_scancode  : std_logic_vector(7 downto 0);
+  signal JoyPCFRLDU    : std_logic_vector(7 downto 0);
+
+  signal coin         : std_logic;
+  signal player_start : std_logic_vector(1 downto 0);
+  signal button_left, button_right, button_protect, button_fire: std_logic;
+  
  
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
   signal tmds_rgb: std_logic_vector(2 downto 0);
@@ -78,8 +89,8 @@ architecture struct of phoenix_esa11 is
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
-  -- signal audio        : std_logic_vector(11 downto 0);
-  -- signal sound_string : std_logic_vector(31 downto 0);
+  signal S_audio: std_logic_vector(11 downto 0);
+  signal S_audio_pwm: std_logic;
 
   signal reset        : std_logic;
   signal clock_stable : std_logic;
@@ -102,9 +113,38 @@ begin
   reset <= not clock_stable;
   dip_switch(3 downto 0) <= M_HEX(3 downto 0);
 
+  -- get scancode from keyboard
+  keybord : entity work.io_ps2_keyboard
+  port map (
+    clk       => clk_pixel,
+    kbd_clk   => ps2_a_clk,
+    kbd_dat   => ps2_a_data,
+    interrupt => kbd_intr,
+    scancode  => kbd_scancode
+  );
+
+  -- translate scancode to joystick
+  Joystick : entity work.kbd_joystick
+  port map (
+    clk         => clk_pixel,
+    kbdint      => kbd_intr,
+    kbdscancode => std_logic_vector(kbd_scancode),
+    JoyPCFRLDU  => JoyPCFRLDU
+  );
+
+  -- joystick to inputs
+  coin            <= not JoyPCFRLDU(7); -- F3 : Insert coin
+  player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
+  player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
+  button_fire     <= not JoyPCFRLDU(4); -- SPACE : Fire
+  button_right    <= not JoyPCFRLDU(3); -- RIGHT arrow : Right
+  button_left     <= not JoyPCFRLDU(2); -- LEFT arrow  : Left
+  button_protect  <= not JoyPCFRLDU(0); -- UP arrow : Protection
+
   phoenix: entity work.phoenix
   generic map
   (
+    C_audio => true,
     C_vga => true
   )
   port map
@@ -112,30 +152,38 @@ begin
     clk_pixel    => clk_pixel,
     reset        => reset,
     dip_switch   => dip_switch,
-    btn_coin     => not M_BTN(0),
-    btn_player_start(0) => not M_BTN(1),
-    btn_player_start(1) => not M_BTN(2),
-    btn_left     => not M_BTN(1),
-    btn_right    => not M_BTN(2),
-    btn_barrier  => not M_BTN(3),
-    btn_fire     => not M_BTN(4),
+    btn_coin     => not M_BTN(2),
+    btn_player_start(0) => not M_BTN(3),
+    btn_player_start(1) => not M_BTN(1),
+    btn_left     => not M_BTN(0),
+    btn_right    => not M_BTN(4),
+    btn_barrier  => not M_BTN(1),
+    btn_fire     => not M_BTN(3),
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
     vga_hsync    => S_vga_hsync,
     vga_vsync    => S_vga_vsync,
-    vga_blank    => S_vga_blank
+    vga_blank    => S_vga_blank,
     -- audio_select => audio_select,
-    -- audio        => audio
-    -- adr_cpu_out  => adr_cpu,
-    -- do_prog      => sram_dq(7 downto 0)
+    audio        => S_audio
   );
+  M_7SEG_A <= kbd_scancode(0);
+  M_7SEG_B <= kbd_scancode(1);
+  M_7SEG_C <= kbd_scancode(2);
+  M_7SEG_D <= kbd_scancode(3);
+  M_7SEG_E <= kbd_scancode(4);
+  M_7SEG_F <= kbd_scancode(5);
+  M_7SEG_G <= kbd_scancode(6);
+  M_7SEG_DP <= kbd_scancode(7);
+  M_7SEG_DIGIT <= "0001";
+
   -- some debugging with LEDs
-  --M_LED(0) <= not porta(0);
-  --M_LED(1) <= (not porta(1)) or (not porta(2));
-  --M_LED(2) <= not porta(3);
-  --M_LED(3) <= not porta(4);
-  --M_LED(4) <= (not porta(5)) or (not porta(6));
+  M_LED(0) <= kbd_scancode(0);
+  M_LED(1) <= kbd_scancode(1);
+  M_LED(2) <= kbd_scancode(2);
+  M_LED(3) <= kbd_scancode(3);
+  M_LED(4) <= kbd_scancode(4);
   M_LED(5) <= S_vga_r(1); -- when game works, changing color on
   M_LED(6) <= S_vga_g(1); -- large area of the screen should
   M_LED(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
@@ -193,23 +241,20 @@ begin
     tmds_out_rgb_n => VID_D_N
   );
 
--- synchro composite/ synchro horizontale
--- vga_hs <= csync when tv15Khz_mode = '1' else hsync;
--- commutation rapide / synchro verticale
--- vga_vs <= '1'   when tv15Khz_mode = '1' else vsync;
+sigma_delta_dac: entity work.dac
+generic map
+(
+  C_bits => 12
+)
+port map
+(
+  clk_i => clk_pixel,
+  res_n_i => '1', -- never reset
+  dac_i => S_audio,
+  dac_o => S_audio_pwm
+);
 
---sound_string <= "0000" & audio & "0000" & audio;
-
---wm8731_dac : entity work.wm8731_dac
---port map(
--- clk18MHz => clk18,
--- sampledata => sound_string,
--- i2c_sclk => i2c_sclk,
--- i2c_sdat => i2c_sdat,
--- aud_bclk => aud_bclk,
--- aud_daclrck => aud_daclrck,
--- aud_dacdat => aud_dacdat,
--- aud_xck => aud_xck
--- ); 
+audio_l <= S_audio_pwm;
+audio_r <= S_audio_pwm;
 
 end struct;
