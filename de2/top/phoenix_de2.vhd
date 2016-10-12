@@ -219,5 +219,13 @@ begin
     tmds_out_clk_n => hdmi_clkn  -- CLK- clock
   );
   end generate;
+  gpio_0(16) <= hdmi_clkp;
+  gpio_0(17) <= hdmi_clkn;
+  gpio_0(18) <= hdmi_dp(0);
+  gpio_0(19) <= hdmi_dn(0);
+  gpio_0(20) <= hdmi_dp(1);
+  gpio_0(21) <= hdmi_dn(1);
+  gpio_0(22) <= hdmi_dp(2);
+  gpio_0(23) <= hdmi_dn(2);
 
 end struct;
