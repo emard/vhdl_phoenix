@@ -1,30 +1,11 @@
 ---------------------------------------------------------------------------------
--- DE2-35 Top level for Phoenix by Dar (darfpga@aol.fr) (April 2016)
--- http://darfpga.blogspot.fr
+-- TB276 Top level for Phoenix by Emard
 --
 -- Main features
---  PS2 keyboard input
---  wm8731 sound output
 --  NO board SRAM used
 --
--- Uses pll for 18MHz and 11MHz generation from 50MHz
+-- place jumper to 76-77 to ehable hdmi-audio
 --
--- Board switch :
---   0 - 7 : dip switch
---             0-1 : lives 3-6
---             3-2 : bonus life 30K-60K
---               4 : coin 1-2
---             6-5 : unkonwn
---               7 : upright-cocktail  
---   8 -10 : sound_select
---             0XX : all mixed (normal)
---             100 : sound1 only 
---             101 : sound2 only
---             110 : sound3 only
---             111 : melody only 
--- Board key :
---      0 : reset
---   
 ---------------------------------------------------------------------------------
 
 library ieee;
@@ -51,19 +32,22 @@ end;
 
 architecture struct of phoenix_tb276 is
   signal clk_pixel, clk_pixel_shift: std_logic;
+
+  signal S_audio: std_logic_vector(11 downto 0);
  
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
+  signal S_hdmi_pd0, S_hdmi_pd1, S_hdmi_pd2: std_logic_vector(9 downto 0);
+  signal tmds_d: std_logic_vector(3 downto 0);
+  signal tx_in: std_logic_vector(29 downto 0);
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_r8, S_vga_g8, S_vga_b8: std_logic_vector(7 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
-  signal S_audio: std_logic_vector(11 downto 0);
 
   signal reset        : std_logic;
   signal clock_stable : std_logic;
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
-  -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
 begin
   G_sdr: if C_hdmi_generic_serializer or not C_hdmi_audio generate
   clkgen_sdr: entity work.pll_25M_250M_25M
@@ -82,7 +66,6 @@ begin
   end generate;
 
   reset <= not clock_stable;
-  -- dip_switch(3 downto 0) <= sw(4 downto 1);
 
   phoenix : entity work.phoenix
   generic map
@@ -111,7 +94,7 @@ begin
     audio        => S_audio
   );
 
-  -- virtual gnd's
+  -- virtual GND's for controls
   gpio(1) <= '0';
   gpio(3) <= '0';
   gpio(5) <= '0';
@@ -174,37 +157,64 @@ begin
   end generate;
 
   G_hdmi_video_audio: if C_hdmi_audio generate
-  S_vga_r8 <= S_vga_r & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0);
-  S_vga_g8 <= S_vga_g & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0);
-  S_vga_b8 <= S_vga_b & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0);
-  av_hdmi_out: entity work.av_hdmi
-  generic map
-  (
-    C_generic_serializer => C_hdmi_generic_serializer,
-    FREQ => 25000000,
-    FS => 48000,
-    CTS => 25000,
-    N => 6144
-  )
-  port map
-  (
-    I_CLK_PIXEL_x5 => clk_pixel_shift,
-    I_CLK_PIXEL    => clk_pixel,
-    I_R            => S_vga_r8,
-    I_G	           => S_vga_g8,
-    I_B            => S_vga_b8,
-    I_BLANK        => S_vga_blank,
-    I_HSYNC        => not S_vga_hsync,
-    I_VSYNC        => not S_vga_vsync,
-    I_AUDIO_ENABLE => not gpio(46), -- set jumper accross pins 75-76 to enable audio
-    I_AUDIO_PCM_L  => S_audio & "0000",
-    I_AUDIO_PCM_R  => S_audio & "0000",
-    O_TMDS_D0      => HDMI_D(0),
-    O_TMDS_D1      => HDMI_D(1),
-    O_TMDS_D2      => HDMI_D(2),
-    O_TMDS_CLK     => HDMI_CLK
-  );
+    S_vga_r8 <= S_vga_r & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0);
+    S_vga_g8 <= S_vga_g & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0);
+    S_vga_b8 <= S_vga_b & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0);
+    av_hdmi_out: entity work.av_hdmi
+    generic map
+    (
+      FREQ => 25000000,
+      FS => 48000,
+      CTS => 25000,
+      N => 6144
+    )
+    port map
+    (
+      I_CLK_PIXEL    => clk_pixel,
+      I_R            => S_vga_r8,
+      I_G            => S_vga_g8,
+      I_B            => S_vga_b8,
+      I_BLANK        => S_vga_blank,
+      I_HSYNC        => not S_vga_hsync,
+      I_VSYNC        => not S_vga_vsync,
+      I_AUDIO_ENABLE => not gpio(46), -- set jumper accross pins 75-76 to enable audio
+      I_AUDIO_PCM_L  => S_audio & "0000",
+      I_AUDIO_PCM_R  => S_audio & "0000",
+      O_TMDS_PD0     => S_HDMI_PD0,
+      O_TMDS_PD1     => S_HDMI_PD1,
+      O_TMDS_PD2     => S_HDMI_PD2
+    );
+    gpio(47) <= '0'; -- simulate GND for jumper to gpio(46)
+
+    -- tx_in <= S_HDMI_PD2 & S_HDMI_PD1 & S_HDMI_PD0; -- this would be normal bit order, but
+    -- generic serializer follows vendor specific serializer style
+    tx_in <=  S_HDMI_PD2(0) & S_HDMI_PD2(1) & S_HDMI_PD2(2) & S_HDMI_PD2(3) & S_HDMI_PD2(4) & S_HDMI_PD2(5) & S_HDMI_PD2(6) & S_HDMI_PD2(7) & S_HDMI_PD2(8) & S_HDMI_PD2(9) &
+              S_HDMI_PD1(0) & S_HDMI_PD1(1) & S_HDMI_PD1(2) & S_HDMI_PD1(3) & S_HDMI_PD1(4) & S_HDMI_PD1(5) & S_HDMI_PD1(6) & S_HDMI_PD1(7) & S_HDMI_PD1(8) & S_HDMI_PD1(9) &
+              S_HDMI_PD0(0) & S_HDMI_PD0(1) & S_HDMI_PD0(2) & S_HDMI_PD0(3) & S_HDMI_PD0(4) & S_HDMI_PD0(5) & S_HDMI_PD0(6) & S_HDMI_PD0(7) & S_HDMI_PD0(8) & S_HDMI_PD0(9);
+
+    G_generic_serializer: if C_hdmi_generic_serializer generate
+      generic_serializer_inst: entity work.serializer_generic
+      PORT MAP
+      (
+        tx_in => tx_in,
+        tx_inclock => CLK_PIXEL_SHIFT, -- NOTE: generic serializer needs CLK_PIXEL x10
+        tx_syncclock => CLK_PIXEL,
+        tx_out => tmds_d
+      );
+      hdmi_clk <= tmds_d(3);
+      hdmi_d   <= tmds_d(2 downto 0);
+    end generate;
+    G_vendor_specific_serializer: if not C_hdmi_generic_serializer generate
+      generic_serializer_inst: entity work.serializer
+      PORT MAP
+      (
+        tx_in => tx_in,
+        tx_inclock => CLK_PIXEL_SHIFT, -- NOTE: vendor-specific serializer needs CLK_PIXEL x5
+        tx_syncclock => CLK_PIXEL,
+        tx_out => tmds_d(2 downto 0)
+      );
+      hdmi_clk <= CLK_PIXEL;
+      hdmi_d   <= tmds_d(2 downto 0);
+    end generate;
   end generate;
-  gpio(47) <= '0'; -- simulate GND for jumper to gpio(46)
-  gpio(31 downto 20) <= S_audio;
 end struct;
