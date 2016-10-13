@@ -17,8 +17,8 @@ generic(
   --C_voice_down_rate: integer := 400
   -- 25 MHz
   C_voice_attack: integer := 6250;
-  C_song0_tempo: integer := 9600;
-  C_song1_tempo: integer := 7600;
+  C_song0_tempo: integer := 60000;
+  C_song1_tempo: integer := 47500;
   C_voice_down_rate: integer := 160
   -- experiment
   --C_voice_attack: integer := 2500;
