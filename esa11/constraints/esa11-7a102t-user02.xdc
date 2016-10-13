@@ -12,10 +12,10 @@ set_property -dict {PACKAGE_PIN F16 IOSTANDARD LVTTL} [get_ports {M_BTN[4]}]
 #
 #	DIP Switch ----------------------------------------------------------------
 #
-# set_property -dict {PACKAGE_PIN B21 IOSTANDARD LVTTL} [get_ports {M_DIP[0]}]
-# set_property -dict {PACKAGE_PIN A21 IOSTANDARD LVTTL} [get_ports {M_DIP[1]}]
-# set_property -dict {PACKAGE_PIN B20 IOSTANDARD LVTTL} [get_ports {M_DIP[2]}]
-# set_property -dict {PACKAGE_PIN A20 IOSTANDARD LVTTL} [get_ports {M_DIP[3]}]
+set_property -dict {PACKAGE_PIN B21 IOSTANDARD LVTTL} [get_ports {M_DIP[0]}]
+set_property -dict {PACKAGE_PIN A21 IOSTANDARD LVTTL} [get_ports {M_DIP[1]}]
+set_property -dict {PACKAGE_PIN B20 IOSTANDARD LVTTL} [get_ports {M_DIP[2]}]
+set_property -dict {PACKAGE_PIN A20 IOSTANDARD LVTTL} [get_ports {M_DIP[3]}]
 
 #
 #	Hex-Switch
