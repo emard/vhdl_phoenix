@@ -26,7 +26,8 @@ ARCHITECTURE SYN OF serializer_generic IS
   signal S_tx_clock: std_logic_vector(C_channel_bits-1 downto 0);
   type T_channel_shift is array(0 to C_channels) of std_logic_vector(C_channel_bits-1 downto 0); -- -- one channel more for clock
   signal S_channel_latch, R_channel_shift: T_channel_shift;
-  signal R_clock_edge: std_logic_vector(1 downto 0);
+  signal R_pixel_clock_toggle, R_prev_pixel_clock_toggle: std_logic;
+  signal R_clock_edge: std_logic;
 BEGIN
   process(tx_syncclock) -- pixel clock
   begin
@@ -46,11 +47,19 @@ BEGIN
 
   S_channel_latch(3) <= "1111100000"; -- the clock pattern
 
-  -- shift register for shift-synchronous pixel clock edge detection
+  process(tx_syncclock)
+  begin
+    if rising_edge(tx_syncclock) then
+      R_pixel_clock_toggle <= not R_pixel_clock_toggle;
+    end if;
+  end process;
+
+  -- shift-synchronous pixel clock edge detection
   process(tx_inclock) -- pixel shift clock (250 MHz)
   begin
     if rising_edge(tx_inclock) then -- pixel clock (25 MHz)
-      R_clock_edge <= tx_syncclock & R_clock_edge(1);
+      R_prev_pixel_clock_toggle <= R_pixel_clock_toggle;
+      R_clock_edge <= R_pixel_clock_toggle xor R_prev_pixel_clock_toggle;
     end if;
   end process;
 
@@ -58,7 +67,7 @@ BEGIN
   process(tx_inclock) -- pixel shift clock
   begin
     if rising_edge(tx_inclock) then
-      if R_clock_edge(0)='0' and R_clock_edge(1)='1' then -- rising edge detection
+      if R_clock_edge='1' then -- rising edge detection
         R_channel_shift(0) <= S_channel_latch(0);
         R_channel_shift(1) <= S_channel_latch(1);
         R_channel_shift(2) <= S_channel_latch(2);

@@ -19,7 +19,6 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 entity av_hdmi is
 generic
 (
-        C_GENERIC_SERIALIZER: BOOLEAN := FALSE; -- set to true for vendor-independent serializer
 	FREQ: integer := 27000000;              -- pixel clock frequency
 	FS: integer := 48000;                   -- audio sample rate - should be 32000, 44100 or 48000
 	CTS: integer := 27000;                  -- CTS = Freq(pixclk) * N / (128 * Fs)
@@ -28,7 +27,6 @@ generic
 );
 port (
 	-- clocks
-	I_CLK_PIXEL_x5	: in std_logic; -- for generic serializer we need 10x clock
 	I_CLK_PIXEL		: in std_logic;
 	
 	-- components
@@ -43,12 +41,12 @@ port (
 	I_AUDIO_ENABLE  : in std_logic;
 	I_AUDIO_PCM_L 	: in std_logic_vector(15 downto 0);
 	I_AUDIO_PCM_R	: in std_logic_vector(15 downto 0);
-	
-	-- TMDS output
-	O_TMDS_D0		: out std_logic;
-	O_TMDS_D1		: out std_logic;
-	O_TMDS_D2		: out std_logic;
-	O_TMDS_CLK		: out std_logic);
+
+        -- TMDS parallel pixel synchronous outputs (serialize LSB first)
+        O_TMDS_PD2      : out std_logic_vector(9 downto 0); -- Red
+        O_TMDS_PD1      : out std_logic_vector(9 downto 0); -- Green
+        O_TMDS_PD0      : out std_logic_vector(9 downto 0)  -- Blue
+);
 end entity;
 
 architecture rtl of av_hdmi is
@@ -347,43 +345,9 @@ port map (
 	ADE	=> dataOut,
 	AUX	=> dataPacket2Out,
 	ENCODED	=> enc2out);
-
--- tx_in <= red & green & blue; -- this would be normal bit order, but
--- vendor specific serializer needs reverse bit order:
-tx_in <=   red(0) & red(1) & red(2) & red(3) & red(4) & red(5) & red(6) & red(7) & red(8) & red(9) &
-           green(0) & green(1) & green(2) & green(3) & green(4) & green(5) & green(6) & green(7) & green(8) & green(9) &
-           blue(0) & blue(1) & blue(2) & blue(3) & blue(4) & blue(5) & blue(6) & blue(7) & blue(8) & blue(9);
-
-G_vendor_specific_serializer:
-if not C_GENERIC_SERIALIZER generate
-  vendor_serializer_inst: entity work.serializer
-  PORT MAP
-  (
-    tx_in        => tx_in,
-    tx_inclock   => I_CLK_PIXEL_x5,
-    tx_syncclock => I_CLK_PIXEL,
-    tx_out       => tmds_d(2 downto 0)
-  );
-  O_TMDS_D0  <= tmds_d(0);
-  O_TMDS_D1  <= tmds_d(1);
-  O_TMDS_D2  <= tmds_d(2);
-  O_TMDS_CLK <= I_CLK_PIXEL;
-end generate;
-
-G_generic_serializer:
-if C_GENERIC_SERIALIZER generate
-  generic_serializer_inst: entity work.serializer_generic
-  PORT MAP
-  (
-    tx_in        => tx_in,
-    tx_inclock	 => I_CLK_PIXEL_x5, -- NOTE: generic serializer needs I_CLK_PIXEL_x10
-    tx_syncclock => I_CLK_PIXEL,
-    tx_out	 => tmds_d
-  );
-  O_TMDS_D0  <= tmds_d(0);
-  O_TMDS_D1  <= tmds_d(1);
-  O_TMDS_D2  <= tmds_d(2);
-  O_TMDS_CLK <= tmds_d(3);
-end generate;
+	
+O_TMDS_PD2 <= red;
+O_TMDS_PD1 <= green;
+O_TMDS_PD0 <= blue;
 
 end rtl;

@@ -33,10 +33,17 @@ use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
 
 entity phoenix_scarab is
+generic
+(
+  C_hdmi_audio_islands: std_logic := '0'; -- for hdmi-audio core, generate audio islands
+  C_hdmi_audio: boolean := true -- ture: use hdmi-audio core, false: hdmi simple core (video-only)
+);
 port(
   clk_50mhz: in std_logic;
   porta: in std_logic_vector(6 downto 0);
   sw: in std_logic_vector(4 downto 1);
+  
+  AUDIO_L, AUDIO_R: out std_logic;
 
   -- warning TMDS_in is used as output
   -- TMDS_in_P, TMDS_in_N: out std_logic_vector(2 downto 0);
@@ -52,13 +59,19 @@ end phoenix_scarab;
 architecture struct of phoenix_scarab is
   signal clk_pixel, clk_pixel_shift: std_logic;
  
-  signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
+  signal S_vga_r8, S_vga_g8, S_vga_b8: std_logic_vector(7 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
-  -- signal audio        : std_logic_vector(11 downto 0);
-  -- signal sound_string : std_logic_vector(31 downto 0);
+
+  signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
+  signal S_hdmi_pd0, S_hdmi_pd1, S_hdmi_pd2: std_logic_vector(9 downto 0);
+  signal tmds_d: std_logic_vector(3 downto 0);
+  signal tx_in: std_logic_vector(29 downto 0);
+
+  signal S_audio: std_logic_vector(11 downto 0);
+  signal S_audio_pwm: std_logic;
 
   signal reset        : std_logic;
   signal clock_stable : std_logic;
@@ -103,10 +116,6 @@ begin
     vga_hsync    => S_vga_hsync,
     vga_vsync    => S_vga_vsync,
     vga_blank    => S_vga_blank
-    -- audio_select => audio_select,
-    -- audio        => audio
-    -- adr_cpu_out  => adr_cpu,
-    -- do_prog      => sram_dq(7 downto 0)
   );
   -- some debugging with LEDs
   leds(0) <= not porta(0);
@@ -118,14 +127,15 @@ begin
   leds(6) <= S_vga_g(1); -- large area of the screen should
   leds(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
 
-  vga2dvi_converter: entity work.vga2dvid
-  generic map
-  (
+  G_hdmi_no_audio: if not C_hdmi_audio generate
+    vga2dvi_converter: entity work.vga2dvid
+    generic map
+    (
       C_ddr     => false,
       C_depth   => 2 -- 2bpp (2 bit per pixel)
-  )
-  port map
-  (
+    )
+    port map
+    (
       clk_pixel => clk_pixel, -- 25 MHz
       clk_shift => clk_pixel_shift, -- 250 MHz
 
@@ -142,19 +152,18 @@ begin
       out_green => dvid_green,
       out_blue  => dvid_blue,
       out_clock => dvid_clock
-  );
+    );
 
-
-  hdmi_output1: entity work.hdmi_out
-  port map
-  (
-    tmds_in_clk    => dvid_clock(0), -- clk_25MHz or tmds_clk
-    tmds_out_clk_p => tmds_out_clk_p,
-    tmds_out_clk_n => tmds_out_clk_n,
-    tmds_in_rgb    => dvid_red(0) & dvid_green(0) & dvid_blue(0),
-    tmds_out_rgb_p => tmds_out_p,
-    tmds_out_rgb_n => tmds_out_n
-  );
+    hdmi_output1: entity work.hdmi_out
+    port map
+    (
+      tmds_in_clk    => dvid_clock(0), -- clk_25MHz or tmds_clk
+      tmds_out_clk_p => tmds_out_clk_p,
+      tmds_out_clk_n => tmds_out_clk_n,
+      tmds_in_rgb    => dvid_red(0) & dvid_green(0) & dvid_blue(0),
+      tmds_out_rgb_p => tmds_out_p,
+      tmds_out_rgb_n => tmds_out_n
+    );
 
 --  hdmi_output2: entity work.hdmi_out
 --  port map
@@ -166,24 +175,83 @@ begin
 --    tmds_out_rgb_p => tmds_in_p,
 --    tmds_out_rgb_n => tmds_in_n
 --  );
+  end generate;
 
--- synchro composite/ synchro horizontale
--- vga_hs <= csync when tv15Khz_mode = '1' else hsync;
--- commutation rapide / synchro verticale
--- vga_vs <= '1'   when tv15Khz_mode = '1' else vsync;
+  G_hdmi_yes_audio: if C_hdmi_audio generate
+    S_vga_r8 <= S_vga_r & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0);
+    S_vga_g8 <= S_vga_g & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0);
+    S_vga_b8 <= S_vga_b & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0);
+    av_hdmi_out: entity work.av_hdmi
+    generic map
+    (
+      FREQ => 25000000,
+      FS => 48000,
+      CTS => 25000,
+      N => 6144
+    )
+    port map
+    (
+      I_CLK_PIXEL    => clk_pixel,
+      I_R            => S_vga_r8,
+      I_G            => S_vga_g8,
+      I_B            => S_vga_b8,
+      I_BLANK        => S_vga_blank,
+      I_HSYNC        => not S_vga_hsync,
+      I_VSYNC        => not S_vga_vsync,
+      I_AUDIO_ENABLE => C_hdmi_audio_islands,
+      I_AUDIO_PCM_L  => S_audio & "0000",
+      I_AUDIO_PCM_R  => S_audio & "0000",
+      O_TMDS_PD0     => S_HDMI_PD0,
+      O_TMDS_PD1     => S_HDMI_PD1,
+      O_TMDS_PD2     => S_HDMI_PD2
+    );
 
---sound_string <= "0000" & audio & "0000" & audio;
+    -- tx_in <= red & green & blue; -- this would be normal bit order, but
+    -- generic serializer follows vendor specific serializer style
+    tx_in <=  S_HDMI_PD2(0) & S_HDMI_PD2(1) & S_HDMI_PD2(2) & S_HDMI_PD2(3) & S_HDMI_PD2(4) & S_HDMI_PD2(5) & S_HDMI_PD2(6) & S_HDMI_PD2(7) & S_HDMI_PD2(8) & S_HDMI_PD2(9) &
+              S_HDMI_PD1(0) & S_HDMI_PD1(1) & S_HDMI_PD1(2) & S_HDMI_PD1(3) & S_HDMI_PD1(4) & S_HDMI_PD1(5) & S_HDMI_PD1(6) & S_HDMI_PD1(7) & S_HDMI_PD1(8) & S_HDMI_PD1(9) &
+              S_HDMI_PD0(0) & S_HDMI_PD0(1) & S_HDMI_PD0(2) & S_HDMI_PD0(3) & S_HDMI_PD0(4) & S_HDMI_PD0(5) & S_HDMI_PD0(6) & S_HDMI_PD0(7) & S_HDMI_PD0(8) & S_HDMI_PD0(9);
 
---wm8731_dac : entity work.wm8731_dac
---port map(
--- clk18MHz => clk18,
--- sampledata => sound_string,
--- i2c_sclk => i2c_sclk,
--- i2c_sdat => i2c_sdat,
--- aud_bclk => aud_bclk,
--- aud_daclrck => aud_daclrck,
--- aud_dacdat => aud_dacdat,
--- aud_xck => aud_xck
--- ); 
+    generic_serializer_inst: entity work.serializer_generic
+    PORT MAP
+    (
+      tx_in => tx_in,
+      tx_inclock => CLK_PIXEL_SHIFT, -- NOTE: generic serializer needs I_CLK_PIXEL_x10
+      tx_syncclock => CLK_PIXEL,
+      tx_out => tmds_d
+    );
+    dvid_clock(0) <= tmds_d(3);
+    dvid_red(0)   <= tmds_d(2);
+    dvid_green(0) <= tmds_d(1);
+    dvid_blue(0)  <= tmds_d(0);
+
+    av_hdmi_output1: entity work.hdmi_out
+    port map
+    (
+      tmds_in_clk    => dvid_clock(0), -- clk_25MHz or tmds_clk
+      tmds_out_clk_p => tmds_out_clk_p,
+      tmds_out_clk_n => tmds_out_clk_n,
+      tmds_in_rgb    => dvid_red(0) & dvid_green(0) & dvid_blue(0),
+      tmds_out_rgb_p => tmds_out_p,
+      tmds_out_rgb_n => tmds_out_n
+    );
+  end generate;
+
+  -- output audio to 3.5mm jack
+  sigma_delta_dac: entity work.dac
+  generic map
+  (
+    C_bits => 8
+  )
+  port map
+  (
+    clk_i => clk_pixel,
+    res_n_i => '1', -- never reset
+    dac_i => S_audio(11 downto 4),
+    dac_o => S_audio_pwm
+  );
+
+  audio_l <= S_audio_pwm;
+  audio_r <= S_audio_pwm;
 
 end struct;

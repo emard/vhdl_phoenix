@@ -14,6 +14,7 @@ openocd_interface = programmer/ft2232-generic.ocd
 xc3sprog_interface = ftdi
 
 vfiles = \
+../rtl_vga/hdmi-audio/hdmidataencoder.v \
 
 vhdfiles = \
 vhdl/phoenix_scarab.vhd \
@@ -26,7 +27,7 @@ vhdl/clocks/clk_50_50_250_25_11MHz.vhd \
 ../rtl_dar/phoenix_effect3.vhd \
 ../rtl_dar/phoenix_music.vhd \
 ../rtl_dar/phoenix_video.vhd \
-../rtl_dar/wm8731_dac.vhd \
+../rtl_dar/dac.vhd \
 ../rtl_T80/T80_ALU.vhd \
 ../rtl_T80/T80_MCode.vhd \
 ../rtl_T80/T80_Pack.vhd \
@@ -46,6 +47,11 @@ vhdl/clocks/clk_50_50_250_25_11MHz.vhd \
 ../rtl_vga/vga.vhd \
 ../rtl_vga/hdmi/vga2dvid.vhd \
 ../rtl_vga/hdmi/tmds_encoder.vhd \
+../rtl_vga/hdmi-audio/av_hdmi.vhd \
+../rtl_vga/hdmi-audio/encoder.vhd \
+../rtl_vga/hdmi-audio/hdmidelay.vhd \
+../rtl_vga/hdmi-audio/serializer_generic.vhd \
+../rtl_vga/altera/cyclone4/serializer.vhd \
 ../rtl_vga/xilinx/xc6/hdmi_out_xc6.vhd \
 
 include xilinx.mk
