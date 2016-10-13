@@ -7,24 +7,11 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.std_logic_unsigned.ALL;
 use ieee.numeric_std.all;
+use ieee.math_real.all;
 
 entity phoenix_music is
 generic(
-  -- 10 MHz
-  --C_voice_attack: integer := 2500;
-  --C_song0_tempo: integer := 24000;
-  --C_song1_tempo: integer := 19000;
-  --C_voice_down_rate: integer := 400
-  -- 25 MHz
-  C_voice_attack: integer := 6250;
-  C_song0_tempo: integer := 60000;
-  C_song1_tempo: integer := 47500;
-  C_voice_down_rate: integer := 160
-  -- experiment
-  --C_voice_attack: integer := 2500;
-  --C_song0_tempo: integer := 25000;
-  --C_song1_tempo: integer := 19000;
-  --C_voice_down_rate: integer := 1000
+  C_clk_freq: real := 25.0 -- MHz
 );
 port(
  clk10    : in std_logic;
@@ -35,6 +22,20 @@ port(
 ); end phoenix_music;
 
 architecture struct of phoenix_music is
+  constant C_voice_attack: integer := integer(230.0 * C_clk_freq); -- larger value is faster
+  constant C_song0_tempo: integer := integer(2200.0 * C_clk_freq); -- larger value is faster
+  constant C_song1_tempo: integer := integer(1700.0 * C_clk_freq); -- larger value is faster
+  constant C_voice_down_rate: integer := integer(4000.0 / C_clk_freq); -- larger value is slower
+  -- 10 MHz
+  --C_voice_attack: integer := 2500;
+  --C_song0_tempo: integer := 24000;
+  --C_song1_tempo: integer := 19000;
+  --C_voice_down_rate: integer := 400;
+  -- 25 MHz
+  --C_voice_attack: integer := 6250;
+  --C_song0_tempo: integer := 60000;
+  --C_song1_tempo: integer := 47500;
+  --C_voice_down_rate: integer := 160;
 
 type voice_array is array (0 to 94) of integer range 0 to 127;
 -- main voice1 (Jeux Interdits)
