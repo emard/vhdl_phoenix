@@ -57,32 +57,32 @@ reg allowGeneration;
 
 initial
 begin
-	audioPacketHeader=0;
-	audioSubPacket[0]=0;
-	audioSubPacket[1]=0;
-	audioSubPacket[2]=0;
-	audioSubPacket[3]=0;
-	channelStatusIdx=0;
-	audioTimer=0;
-	samplesHead=0;
+	audioPacketHeader<=0;
+	audioSubPacket[0]<=0;
+	audioSubPacket[1]<=0;
+	audioSubPacket[2]<=0;
+	audioSubPacket[3]<=0;
+	channelStatusIdx<=0;
+	audioTimer<=0;
+	samplesHead<=0;
 	ctsTimer = 0;
-	dataChannel0=0;
-	dataChannel1=0;
-	dataChannel2=0;
-	packetHeader=0;
-	subpacket[0]=0;
-	subpacket[1]=0;
-	subpacket[2]=0;
-	subpacket[3]=0;
-	bchHdr=0;
-	bchCode[0]=0;
-	bchCode[1]=0;
-	bchCode[2]=0;
-	bchCode[3]=0;
-	dataOffset=0;
-	tercData=0;
-	oddLine=0;
-	counterX=0;
+	dataChannel0<=0;
+	dataChannel1<=0;
+	dataChannel2<=0;
+	packetHeader<=0;
+	subpacket[0]<=0;
+	subpacket[1]<=0;
+	subpacket[2]<=0;
+	subpacket[3]<=0;
+	bchHdr<=0;
+	bchCode[0]<=0;
+	bchCode[1]<=0;
+	bchCode[2]<=0;
+	bchCode[3]<=0;
+	dataOffset<=0;
+	tercData<=0;
+	oddLine<=0;
+	counterX<=0;
 	prevHSync = 0;
 	prevBlank = 0;
 	firstHSyncChange = 0;
@@ -136,9 +136,9 @@ task SendPacket;
 	inout [55:0] pckData3;
 	input firstPacket;
 begin
-	dataChannel0[0]=i_hSync;
-	dataChannel0[1]=i_vSync;
-	dataChannel0[3]=(!firstPacket || dataOffset)?1'b1:1'b0;
+	dataChannel0[0]<=i_hSync;
+	dataChannel0[1]<=i_vSync;
+	dataChannel0[3]<=(!firstPacket || dataOffset)?1'b1:1'b0;
 	ECCu(dataChannel0[2], bchHdr, pckHeader[0], dataOffset<24?1'b1:1'b0);
 	ECC2u(dataChannel1[0], dataChannel2[0], bchCode[0], pckData0[0], pckData0[1], dataOffset<28?1'b1:1'b0);
 	ECC2u(dataChannel1[1], dataChannel2[1], bchCode[1], pckData1[0], pckData1[1], dataOffset<28?1'b1:1'b0);
@@ -167,7 +167,7 @@ begin
 		if (!oddLine) begin
 			packetHeader<=24'h0D0282;	// infoframe AVI packet	
 			// Byte0: Checksum (256-(S%256))%256
-			// Byte1: 10 = 0(Y1:Y0=0 RGB)(A0=1 active format valid)(B1:B0=00 No bar info)(S1:S0=00 No scan info)
+			// Byte1: 10 = 0(Y1:Y0<=0 RGB)(A0=1 active format valid)(B1:B0=00 No bar info)(S1:S0=00 No scan info)
 			// Byte2: 19 = (C1:C0=0 No colorimetry)(M1:M0=1 4:3)(R3:R0=9 4:3 center)
 			// Byte3: 00 = 0(SC1:SC0=0 No scaling)
 			// Byte4: 00 = 0(VIC6:VIC0=0 custom resolution)
