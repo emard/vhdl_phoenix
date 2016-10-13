@@ -10,6 +10,7 @@ ENTITY serializer_generic IS
 GENERIC
 (
   C_channel_bits: integer := 10; -- number of bits per channel
+  C_output_bits: integer := 1; -- output bits per channel
   C_channels: integer := 3 -- number of channels to serialize
 );
 PORT
@@ -17,7 +18,7 @@ PORT
   tx_in	       : IN STD_LOGIC_VECTOR(C_channel_bits*C_channels-1 DOWNTO 0);
   tx_inclock   : IN STD_LOGIC; -- 10x tx_syncclock
   tx_syncclock : IN STD_LOGIC;
-  tx_out       : OUT STD_LOGIC_VECTOR(C_channels DOWNTO 0) -- one more for clock
+  tx_out       : OUT STD_LOGIC_VECTOR((C_channels+1)*C_output_bits-1 DOWNTO 0) -- one more channel for clock
 );
 END;
 
@@ -28,6 +29,7 @@ ARCHITECTURE SYN OF serializer_generic IS
   signal S_channel_latch, R_channel_shift: T_channel_shift;
   signal R_pixel_clock_toggle, R_prev_pixel_clock_toggle: std_logic;
   signal R_clock_edge: std_logic;
+  constant C_shift_pad: std_logic_vector(C_output_bits-1 downto 0) := (others => '0');
 BEGIN
   process(tx_syncclock) -- pixel clock
   begin
@@ -73,13 +75,17 @@ BEGIN
         R_channel_shift(2) <= S_channel_latch(2);
         R_channel_shift(3) <= S_channel_latch(3);
       else
-        R_channel_shift(0) <= '0' & R_channel_shift(0)(C_channel_bits-1 downto 1);
-        R_channel_shift(1) <= '0' & R_channel_shift(1)(C_channel_bits-1 downto 1);
-        R_channel_shift(2) <= '0' & R_channel_shift(2)(C_channel_bits-1 downto 1);
-        R_channel_shift(3) <= '0' & R_channel_shift(3)(C_channel_bits-1 downto 1);
+        R_channel_shift(0) <= C_shift_pad & R_channel_shift(0)(C_channel_bits-1 downto C_output_bits);
+        R_channel_shift(1) <= C_shift_pad & R_channel_shift(1)(C_channel_bits-1 downto C_output_bits);
+        R_channel_shift(2) <= C_shift_pad & R_channel_shift(2)(C_channel_bits-1 downto C_output_bits);
+        R_channel_shift(3) <= C_shift_pad & R_channel_shift(3)(C_channel_bits-1 downto C_output_bits);
       end if;
     end if;
   end process;
 
-  tx_out <= R_channel_shift(3)(0) & R_channel_shift(2)(0) & R_channel_shift(1)(0) & R_channel_shift(0)(0);
+  tx_out <= R_channel_shift(3)(C_output_bits-1 downto 0) 
+          & R_channel_shift(2)(C_output_bits-1 downto 0) 
+          & R_channel_shift(1)(C_output_bits-1 downto 0) 
+          & R_channel_shift(0)(C_output_bits-1 downto 0);
+
 END SYN;
