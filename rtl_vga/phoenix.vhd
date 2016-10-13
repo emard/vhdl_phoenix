@@ -13,9 +13,9 @@ generic (
   C_test_picture: boolean := false;
   C_tile_rom: boolean := true; -- false: disable tile ROM to try game logic on small FPGA
   -- reduce ROMs: 14 is normal game, 13 will draw initial screen, 12 will repeatedly blink 1 line of garbage
-  C_audio: boolean := false;
+  C_audio: boolean := true;
   C_prog_rom_addr_bits: integer range 12 to 14 := 14; 
-  C_vga: boolean := false
+  C_vga: boolean := true
 );
 port(
  clk_pixel    : in std_logic; -- 11 MHz for TV, 25 MHz for VGA
