@@ -35,7 +35,8 @@ use ieee.numeric_std.all;
 entity phoenix_scarab is
 generic
 (
-  C_hdmi_audio_islands: std_logic := '0'; -- for hdmi-audio core, generate audio islands
+  C_test_picture: boolean := false;
+  C_hdmi_audio_islands: std_logic := '0'; -- for hdmi-audio core: generate audio islands
   C_hdmi_audio: boolean := true -- ture: use hdmi-audio core, false: hdmi simple core (video-only)
 );
 port(
@@ -96,6 +97,8 @@ begin
   phoenix : entity work.phoenix
   generic map
   (
+    C_test_picture => C_test_picture,
+    C_audio => true,
     C_vga => true
   )
   port map
@@ -206,7 +209,7 @@ begin
       O_TMDS_PD2     => S_HDMI_PD2
     );
 
-    -- tx_in <= red & green & blue; -- this would be normal bit order, but
+    -- tx_in <= S_HDMI_PD2 & S_HDMI_PD1 & S_HDMI_PD0; -- this would be normal bit order, but
     -- generic serializer follows vendor specific serializer style
     tx_in <=  S_HDMI_PD2(0) & S_HDMI_PD2(1) & S_HDMI_PD2(2) & S_HDMI_PD2(3) & S_HDMI_PD2(4) & S_HDMI_PD2(5) & S_HDMI_PD2(6) & S_HDMI_PD2(7) & S_HDMI_PD2(8) & S_HDMI_PD2(9) &
               S_HDMI_PD1(0) & S_HDMI_PD1(1) & S_HDMI_PD1(2) & S_HDMI_PD1(3) & S_HDMI_PD1(4) & S_HDMI_PD1(5) & S_HDMI_PD1(6) & S_HDMI_PD1(7) & S_HDMI_PD1(8) & S_HDMI_PD1(9) &
