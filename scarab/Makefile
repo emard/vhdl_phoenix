@@ -17,8 +17,8 @@ vfiles = \
 ../rtl_vga/hdmi-audio/hdmidataencoder.v \
 
 vhdfiles = \
-vhdl/phoenix_scarab.vhd \
-vhdl/clocks/clk_50_50_250_25_11MHz.vhd \
+top/phoenix_scarab.vhd \
+clocks/clk_50_50_250_25_11MHz.vhd \
 ../rtl_dar/gen_ram.vhd \
 ../rtl_dar/io_ps2_keyboard.vhd \
 ../rtl_dar/kbd_joystick.vhd \
