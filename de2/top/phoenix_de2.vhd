@@ -7,10 +7,10 @@
 --  wm8731 sound output
 --  NO board SRAM used
 --
--- Uses pll for 18MHz and 11MHz generation from 50MHz
+-- sw 0: on/off hdmi-audio
 --
--- Board switch :
---   0 - 7 : dip switch
+-- Board switch : ---- todo fixme switches note
+--   1 - 4 : dip switch
 --             0-1 : lives 3-6
 --             3-2 : bonus life 30K-60K
 --               4 : coin 1-2
@@ -44,27 +44,36 @@ port
   ledr: out std_logic_vector(7 downto 0);
   VGA_R, VGA_G, VGA_B: out std_logic_vector(9 downto 0);
   VGA_HS, VGA_VS, VGA_CLK, VGA_BLANK, VGA_SYNC: out std_logic;
+  sw: in std_logic_vector(17 downto 0);
   ps2_clk: in std_logic;
   ps2_dat: in std_logic;
+  i2c_sclk : out std_logic;
+  i2c_sdat : inout std_logic;
+  aud_adclrck : out std_logic;
+  aud_adcdat  : in std_logic;
+  aud_daclrck : out std_logic;
+  aud_dacdat  : out std_logic;
+  aud_xck     : out std_logic;
+  aud_bclk    : out std_logic;
   gpio_0: inout std_logic_vector(35 downto 0)
-  --hdmi_d: out std_logic_vector(2 downto 0);
-  --hdmi_clk: out std_logic;
-  --btn_left, btn_right: in std_logic
 );
 end;
 
 architecture struct of phoenix_de2 is
   signal clk_pixel, clk_pixel_shift: std_logic;
- 
-  signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
+
+  signal S_audio: std_logic_vector(11 downto 0);
+  signal sound_string : std_logic_vector(31 downto 0);
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_r8, S_vga_g8, S_vga_b8: std_logic_vector(7 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
-  signal S_audio: std_logic_vector(11 downto 0);
 
-  signal btn_left, btn_right: std_logic;
+  signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
+  signal S_hdmi_pd0, S_hdmi_pd1, S_hdmi_pd2: std_logic_vector(9 downto 0);
+  signal tmds_d: std_logic_vector(3 downto 0);
+  signal tx_in: std_logic_vector(29 downto 0);
   signal hdmi_dp, hdmi_dn: std_logic_vector(2 downto 0);
   signal hdmi_clkp, hdmi_clkn: std_logic;
 
@@ -92,7 +101,7 @@ begin
   end generate;
 
   reset <= not clock_stable;
-  -- dip_switch(3 downto 0) <= sw(4 downto 1);
+  dip_switch(3 downto 0) <= sw(4 downto 1);
 
   -- get scancode from keyboard
   keybord : entity work.io_ps2_keyboard
@@ -146,6 +155,7 @@ begin
     vga_hsync    => S_vga_hsync,
     vga_vsync    => S_vga_vsync,
     vga_blank    => S_vga_blank,
+    -- audio_select => audio_select,
     audio        => S_audio
   );
 
@@ -219,6 +229,63 @@ begin
     tmds_out_clk_n => hdmi_clkn  -- CLK- clock
   );
   end generate;
+
+  G_hdmi_video_audio: if C_hdmi_audio generate
+    S_vga_r8 <= S_vga_r & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0);
+    S_vga_g8 <= S_vga_g & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0);
+    S_vga_b8 <= S_vga_b & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0);
+    av_hdmi_out: entity work.av_hdmi
+    generic map
+    (
+      FREQ => 25000000,
+      FS => 48000,
+      CTS => 25000,
+      N => 6144
+    )
+    port map
+    (
+      I_CLK_PIXEL    => clk_pixel,
+      I_R            => S_vga_r8,
+      I_G            => S_vga_g8,
+      I_B            => S_vga_b8,
+      I_BLANK        => S_vga_blank,
+      I_HSYNC        => not S_vga_hsync,
+      I_VSYNC        => not S_vga_vsync,
+      I_AUDIO_ENABLE => sw(0),
+      I_AUDIO_PCM_L  => S_audio & "0000",
+      I_AUDIO_PCM_R  => S_audio & "0000",
+      O_TMDS_PD0     => S_HDMI_PD0,
+      O_TMDS_PD1     => S_HDMI_PD1,
+      O_TMDS_PD2     => S_HDMI_PD2
+    );
+
+    -- tx_in <= S_HDMI_PD2 & S_HDMI_PD1 & S_HDMI_PD0; -- this would be normal bit order, but
+    -- generic serializer follows vendor specific serializer style
+    tx_in <=  S_HDMI_PD2(0) & S_HDMI_PD2(1) & S_HDMI_PD2(2) & S_HDMI_PD2(3) & S_HDMI_PD2(4) & S_HDMI_PD2(5) & S_HDMI_PD2(6) & S_HDMI_PD2(7) & S_HDMI_PD2(8) & S_HDMI_PD2(9) &
+              S_HDMI_PD1(0) & S_HDMI_PD1(1) & S_HDMI_PD1(2) & S_HDMI_PD1(3) & S_HDMI_PD1(4) & S_HDMI_PD1(5) & S_HDMI_PD1(6) & S_HDMI_PD1(7) & S_HDMI_PD1(8) & S_HDMI_PD1(9) &
+              S_HDMI_PD0(0) & S_HDMI_PD0(1) & S_HDMI_PD0(2) & S_HDMI_PD0(3) & S_HDMI_PD0(4) & S_HDMI_PD0(5) & S_HDMI_PD0(6) & S_HDMI_PD0(7) & S_HDMI_PD0(8) & S_HDMI_PD0(9);
+
+    generic_serializer_inst: entity work.serializer_generic
+    PORT MAP
+    (
+        tx_in => tx_in,
+        tx_inclock => CLK_PIXEL_SHIFT, -- NOTE: generic serializer needs CLK_PIXEL x10
+        tx_syncclock => CLK_PIXEL,
+        tx_out => tmds_d
+    );
+    -- GPIO "differential" output buffering for HDMI
+    hdmi_output: entity work.hdmi_out
+    port map
+    (
+      tmds_in_rgb    => tmds_d(2 downto 0),
+      tmds_out_rgb_p => hdmi_dp,   -- D2+ red  D1+ green  D0+ blue
+      tmds_out_rgb_n => hdmi_dn,   -- D2- red  D1- green  D0+ blue
+      tmds_in_clk    => tmds_d(3),
+      tmds_out_clk_p => hdmi_clkp, -- CLK+ clock
+      tmds_out_clk_n => hdmi_clkn  -- CLK- clock
+    );
+  end generate;
+
   gpio_0(16) <= hdmi_clkp;
   gpio_0(17) <= hdmi_clkn;
   gpio_0(18) <= hdmi_dp(0);
@@ -227,5 +294,18 @@ begin
   gpio_0(21) <= hdmi_dn(1);
   gpio_0(22) <= hdmi_dp(2);
   gpio_0(23) <= hdmi_dn(2);
+
+  sound_string <= "0000" & S_audio & "0000" & S_audio;
+  wm8731_dac : entity work.wm8731_dac
+  port map(
+    clk18MHz => clk_pixel, -- warning 25 MHz while 18 MHz expected
+    sampledata => sound_string,
+    i2c_sclk => i2c_sclk,
+    i2c_sdat => i2c_sdat,
+    aud_bclk => aud_bclk,
+    aud_daclrck => aud_daclrck,
+    aud_dacdat => aud_dacdat,
+    aud_xck => aud_xck
+  ); 
 
 end struct;
