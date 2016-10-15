@@ -171,10 +171,10 @@ begin
   VGA_R(9 downto 8) <= S_vga_r; VGA_R(7 downto 0) <= (others => S_vga_r(0));
   VGA_G(9 downto 8) <= S_vga_g; VGA_G(7 downto 0) <= (others => S_vga_g(0));
   VGA_B(9 downto 8) <= S_vga_b; VGA_B(7 downto 0) <= (others => S_vga_b(0));
-  VGA_HS <= S_vga_hsync;
-  VGA_VS <= S_vga_vsync;
-  VGA_BLANK <= S_vga_blank;
-  VGA_SYNC <= S_vga_hsync or S_vga_vsync;
+  VGA_HS <= not S_vga_hsync;
+  VGA_VS <= not S_vga_vsync;
+  VGA_BLANK <= not S_vga_blank;
+  VGA_SYNC <= not (S_vga_hsync or S_vga_vsync);
   VGA_CLK <= clk_pixel;
 
   -- some debugging with LEDs
@@ -204,8 +204,8 @@ begin
     in_blue  => S_vga_b,
 
     in_blank => S_vga_blank,
-    in_hsync => S_vga_hsync,
-    in_vsync => S_vga_vsync,
+    in_hsync => not S_vga_hsync,
+    in_vsync => not S_vga_vsync,
 
     -- single-ended output ready for differential buffers
     out_red   => dvid_red,
