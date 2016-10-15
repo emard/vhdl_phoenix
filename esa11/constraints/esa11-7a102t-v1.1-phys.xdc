@@ -212,29 +212,28 @@ set_property -dict {PACKAGE_PIN V20 IOSTANDARD LVTTL DRIVE 4} [get_ports AUDIO_R
 #
 #	Atmel MCU Communication
 #
-#set_property -dict {PACKAGE_PIN Y1 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_CCLK/CONF_DCLK]
+#set_property -dict {PACKAGE_PIN Y1 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_CCLK_CONF_DCLK]
 #set_property -dict {PACKAGE_PIN L12 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_CCLK_INTERNAL]
 #set_property -dict {PACKAGE_PIN T19 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_CSO]
 #set_property -dict {PACKAGE_PIN P21 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_D02]
 #set_property -dict {PACKAGE_PIN R21 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_D03]
-#set_property -dict {PACKAGE_PIN G11 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_DONE/CONF_DONE]
-#set_property -dict {PACKAGE_PIN U12 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_INIT/CONF_NCONFIG]
+#set_property -dict {PACKAGE_PIN G11 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_DONE_CONF_DONE]
+#set_property -dict {PACKAGE_PIN U12 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_INIT_CONF_NCONFIG]
 
-#set_property -dict {PACKAGE_PIN AA1 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_MISO/CONF_DATA0]
+set_property -dict {PACKAGE_PIN AA1 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_MISO_CONF_DATA0]
 #set_property -dict {PACKAGE_PIN R22 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_MISO_INTERNAL]
 #set_property -dict {PACKAGE_PIN P22 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_MOSI]
-#set_property -dict {PACKAGE_PIN N12 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_PROG/CONF_NSTATUS]
+#set_property -dict {PACKAGE_PIN N12 IOSTANDARD LVTTL DRIVE 4} [get_ports FPGA_PROG_CONF_NSTATUS]
 
-#set_property -dict {PACKAGE_PIN U3 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_CMD/MOSI]
-#set_property -dict {PACKAGE_PIN V3 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_D0/MISO]
-#set_property -dict {PACKAGE_PIN AB1 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_D3/SS1]
-#set_property -dict {PACKAGE_PIN V2 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_SCLK//SCK]
-#set_property -dict {PACKAGE_PIN F8 IOSTANDARD LVTTL DRIVE 4} [get_ports N$118]
+set_property -dict {PACKAGE_PIN U3 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_CMD_MOSI]
+set_property -dict {PACKAGE_PIN V3 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_D0_MISO]
+set_property -dict {PACKAGE_PIN AB1 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_D3_SS1]
+set_property -dict {PACKAGE_PIN V2 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_SCLK_SCK]
+#set_property -dict {PACKAGE_PIN F8 IOSTANDARD LVTTL DRIVE 4} [get_ports MGTRREF_216]
 
-
-#set_property -dict {PACKAGE_PIN U2 IOSTANDARD LVTTL DRIVE 4} [get_ports SS2/FPGA]
-#set_property -dict {PACKAGE_PIN V4 IOSTANDARD LVTTL DRIVE 4} [get_ports SS3/OSD]
-#set_property -dict {PACKAGE_PIN Y2 IOSTANDARD LVTTL DRIVE 4} [get_ports SS4/SD_DIRECT]
+set_property -dict {PACKAGE_PIN U2 IOSTANDARD LVTTL DRIVE 4} [get_ports SS2_FPGA]
+set_property -dict {PACKAGE_PIN V4 IOSTANDARD LVTTL DRIVE 4} [get_ports SS3_OSD]
+set_property -dict {PACKAGE_PIN Y2 IOSTANDARD LVTTL DRIVE 4} [get_ports SS4_SD_DIRECT]
 
 
 

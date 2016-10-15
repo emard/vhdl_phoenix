@@ -50,6 +50,11 @@ port
   M_LED: out std_logic_vector(7 downto 0);
   -- PS/2 keyboard
   PS2_A_DATA, PS2_A_CLK, PS2_B_DATA, PS2_B_CLK: inout std_logic;
+  -- MIST joystick
+  MCU_SD_D3_SS1, SS2_FPGA, SS3_OSD, SS4_SD_DIRECT: in std_logic;
+  FPGA_MISO_CONF_DATA0: in std_logic;
+  MCU_SD_SCLK_SCK, MCU_SD_CMD_MOSI: in std_logic;
+  MCU_SD_D0_MISO: out std_logic;
   -- AUDIO
   AUDIO_L, AUDIO_R: out std_logic;
   -- HDMI
@@ -91,7 +96,22 @@ architecture struct of phoenix_esa11 is
   );
   end component;
 
+  -- for MIST joystick
+  component user_io is
+  Port (
+      CLK: in STD_LOGIC;
+      SPI_SS_IO: in STD_LOGIC;
+      SPI_CLK: in STD_LOGIC;
+      SPI_MOSI: in STD_LOGIC;
+      SPI_MISO: out STD_LOGIC;
+      JOY0, JOY1: out STD_LOGIC_VECTOR(5 downto 0);
+      BUTTONS, SWITCHES: out STD_LOGIC_VECTOR(1 downto 0);
+      CORE_TYPE: in STD_LOGIC_VECTOR(7 downto 0)
+  );
+  end component;
+
   signal clk_pixel, clk_pixel_shift: std_logic;
+  signal clk_spi: std_logic;
 
   signal kbd_intr      : std_logic;
   signal kbd_scancode  : std_logic_vector(7 downto 0);
@@ -115,7 +135,9 @@ architecture struct of phoenix_esa11 is
 
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
-
+  signal S_db9_joy0, S_db9_joy1: std_logic_vector(5 downto 0);
+  signal S_db9_btn, S_db9_sw: std_logic_vector(1 downto 0);
+  
   signal reset        : std_logic;
   signal clock_stable : std_logic;
   signal dip_switch   : std_logic_vector(7 downto 0) := (others => '0');
@@ -133,6 +155,7 @@ begin
     clk_250mhz => clk_pixel_shift,
     clk_25mhz  => clk_pixel
   );
+  clk_spi <= clk_pixel_shift;
   end generate;
 
   G_hdmi_ddr: if C_hdmi_ddr generate
@@ -144,7 +167,7 @@ begin
     reset => '0',
     locked => clock_stable,
     clk_100mhz => open,
-    clk_200mhz => open,
+    clk_200mhz => clk_spi,
     clk_125mhz => clk_pixel_shift,
     clk_25mhz  => clk_pixel
   );
@@ -164,7 +187,7 @@ begin
   );
 
   -- translate scancode to joystick
-  Joystick : entity work.kbd_joystick
+  PS2_keyboard_to_joystick: entity work.kbd_joystick
   port map (
     clk         => clk_pixel,
     kbdint      => kbd_intr,
@@ -172,14 +195,37 @@ begin
     JoyPCFRLDU  => JoyPCFRLDU
   );
 
+  mist_joystick: user_io
+  port map
+  (
+    CLK => clk_spi, -- 250 MHz (needs fast clock here)
+    SPI_SS_IO => FPGA_MISO_CONF_DATA0,
+    SPI_CLK => MCU_SD_SCLK_SCK, -- input from ARM SPI is 24 MHz
+    SPI_MOSI => MCU_SD_CMD_MOSI,
+    SPI_MISO => MCU_SD_D0_MISO,
+    JOY0 => S_db9_joy0,
+    JOY1 => S_db9_joy1,
+    BUTTONS  => open,
+    SWITCHES => open,
+    CORE_TYPE => x"A4" -- 8-bit core (Atari-800, C-64 and like)
+  );
+  
   -- joystick to inputs
-  coin            <= not JoyPCFRLDU(7); -- F3 : Insert coin
-  player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
-  player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
-  button_fire     <= not JoyPCFRLDU(4); -- SPACE : Fire
-  button_right    <= not JoyPCFRLDU(3); -- RIGHT arrow : Right
-  button_left     <= not JoyPCFRLDU(2); -- LEFT arrow  : Left
-  button_protect  <= not JoyPCFRLDU(0); -- UP arrow : Protection
+--  coin            <= (not M_BTN(2)) or (not JoyPCFRLDU(7)); -- F3 : Insert coin
+--  player_start(0) <= (not M_BTN(3)) or S_db9_joy1(2) or (not JoyPCFRLDU(5)); -- F1 : Start 1 Player
+--  player_start(1) <= (not M_BTN(1)) or S_db9_joy1(3) or (not JoyPCFRLDU(6)); -- F2 : Start 2 Players
+--  button_left     <= (not M_BTN(0)) or S_db9_joy1(1) or (not JoyPCFRLDU(2)); -- LEFT arrow  : Left
+--  button_right    <= (not M_BTN(4)) or S_db9_joy1(0) or (not JoyPCFRLDU(3)); -- RIGHT arrow : Right
+--  button_protect  <= (not M_BTN(1)) or S_db9_joy1(5) or (not JoyPCFRLDU(0)); -- UP arrow : Protection
+--  button_fire     <= (not M_BTN(3)) or S_db9_joy1(4) or (not JoyPCFRLDU(4)); -- SPACE : Fire
+
+  coin            <= (not M_BTN(2));
+  player_start(0) <= (not M_BTN(3)) or S_db9_joy1(3);
+  player_start(1) <= (not M_BTN(1)) or S_db9_joy1(2);
+  button_left     <= (not M_BTN(0)) or S_db9_joy1(1);
+  button_right    <= (not M_BTN(4)) or S_db9_joy1(0);
+  button_protect  <= (not M_BTN(1)) or S_db9_joy1(4);
+  button_fire     <= (not M_BTN(3)) or S_db9_joy1(5);
 
   phoenix: entity work.phoenix
   generic map
@@ -193,13 +239,13 @@ begin
     clk_pixel    => clk_pixel,
     reset        => reset,
     dip_switch   => dip_switch,
-    btn_coin     => not M_BTN(2),
-    btn_player_start(0) => not M_BTN(3),
-    btn_player_start(1) => not M_BTN(1),
-    btn_left     => not M_BTN(0),
-    btn_right    => not M_BTN(4),
-    btn_barrier  => not M_BTN(1),
-    btn_fire     => not M_BTN(3),
+    btn_coin     => coin,
+    btn_player_start(0) => player_start(0),
+    btn_player_start(1) => player_start(1),
+    btn_left     => button_left,
+    btn_right    => button_right,
+    btn_barrier  => button_protect,
+    btn_fire     => button_fire,
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
@@ -220,13 +266,15 @@ begin
   M_7SEG_DIGIT <= "0001";
 
   -- some debugging with LEDs
-  M_LED(0) <= kbd_scancode(0);
-  M_LED(1) <= kbd_scancode(1);
-  M_LED(2) <= kbd_scancode(2);
-  M_LED(3) <= kbd_scancode(3);
-  M_LED(4) <= kbd_scancode(4);
-  M_LED(5) <= S_vga_r(1); -- when game works, changing color on
-  M_LED(6) <= S_vga_g(1); -- large area of the screen should
+  M_LED(0) <= coin;
+  M_LED(1) <= player_start(0);
+  M_LED(2) <= player_start(1);
+  M_LED(3) <= button_left;
+  M_LED(4) <= button_right;
+  M_LED(5) <= button_fire;
+  M_LED(6) <= button_protect;
+--  M_LED(5) <= S_vga_r(1); -- when game works, changing color on
+--  M_LED(6) <= S_vga_g(1); -- large area of the screen should
   M_LED(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
 
   G_hdmi_no_audio: if not C_hdmi_audio generate
