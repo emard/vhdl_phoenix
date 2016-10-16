@@ -20,7 +20,7 @@ entity phoenix_esa11 is
 generic
 (
   C_test_picture: boolean := false;
-  C_hdmi_ddr: boolean := false;
+  C_hdmi_ddr: boolean := true;
   C_hdmi_audio: boolean := true -- true: use hdmi-audio core, false: hdmi simple core (video-only)
 );
 port
@@ -114,6 +114,7 @@ architecture struct of phoenix_esa11 is
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
   signal S_hdmi_pd0, S_hdmi_pd1, S_hdmi_pd2: std_logic_vector(9 downto 0);
   signal tmds_d: std_logic_vector(3 downto 0);
+  signal tmds_ddr: std_logic_vector(7 downto 0);
   signal tx_in: std_logic_vector(29 downto 0);
   signal tmds_rgb: std_logic_vector(2 downto 0);
   signal tmds_clk: std_logic;
@@ -370,21 +371,49 @@ begin
               S_HDMI_PD1(0) & S_HDMI_PD1(1) & S_HDMI_PD1(2) & S_HDMI_PD1(3) & S_HDMI_PD1(4) & S_HDMI_PD1(5) & S_HDMI_PD1(6) & S_HDMI_PD1(7) & S_HDMI_PD1(8) & S_HDMI_PD1(9) &
               S_HDMI_PD0(0) & S_HDMI_PD0(1) & S_HDMI_PD0(2) & S_HDMI_PD0(3) & S_HDMI_PD0(4) & S_HDMI_PD0(5) & S_HDMI_PD0(6) & S_HDMI_PD0(7) & S_HDMI_PD0(8) & S_HDMI_PD0(9);
 
-    generic_serializer_inst: entity work.serializer_generic
-    GENERIC MAP
-    (
-      C_output_bits => 1
-    )
-    PORT MAP
-    (
-      tx_in => tx_in,
-      tx_inclock => CLK_PIXEL_SHIFT, -- NOTE: generic serializer needs I_CLK_PIXEL_x10
-      tx_syncclock => CLK_PIXEL,
-      tx_out => tmds_d
-    );
+    G_serializer_sdr: if not C_hdmi_ddr generate
+      generic_serializer_sdr_inst: entity work.serializer_generic
+      GENERIC MAP
+      (
+        C_output_bits => 1
+      )
+      PORT MAP
+      (
+        tx_in => tx_in,
+        tx_inclock => CLK_PIXEL_SHIFT, -- NOTE: generic serializer needs I_CLK_PIXEL_x10
+        tx_syncclock => CLK_PIXEL,
+        tx_out => tmds_d(3 downto 0)
+      );
+    end generate;
+
+    G_serializer_ddr: if C_hdmi_ddr generate
+      generic_serializer_ddr_inst: entity work.serializer_generic
+      GENERIC MAP
+      (
+        C_output_bits => 2
+      )
+      PORT MAP
+      (
+        tx_in => tx_in,
+        tx_inclock => CLK_PIXEL_SHIFT, -- NOTE: generic serializer needs I_CLK_PIXEL_x10
+        tx_syncclock => CLK_PIXEL,
+        tx_out => tmds_ddr(7 downto 0)
+      );
+
+      hdmi_channels: for i in 0 to 3 generate
+        ddr_driver: entity work.ddr_out
+        port map
+        (
+          iclkp => clk_pixel_shift,
+          iclkn => '0',
+          idata => tmds_ddr(2*i+1 downto 2*i),
+          odata => tmds_d(i)
+        );
+      end generate;
+    end generate;
 
     -- differential output buffering for HDMI clock and video
-    av_hdmi_output: entity work.hdmi_out
+    differential_av_hdmi_output: entity work.hdmi_out
     port map
     (
       tmds_in_clk => tmds_d(3), -- clk_25MHz or tmds_clk
