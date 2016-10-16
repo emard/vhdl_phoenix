@@ -1,27 +1,27 @@
-/*
-#define CORE_TYPE_UNKNOWN   0x55
-#define CORE_TYPE_DUMB      0xa0   // core without any io controller interaction
-#define CORE_TYPE_MINIMIG   0xa1   // minimig amiga core
-#define CORE_TYPE_PACE      0xa2   // core from pacedev.net (joystick only)
-#define CORE_TYPE_MIST      0xa3   // mist atari st core   
-#define CORE_TYPE_8BIT      0xa4   // atari 800/c64 like core
-#define CORE_TYPE_MINIMIG2  0xa5   // new Minimig with AGA
-#define CORE_TYPE_ARCHIE    0xa6   // Acorn Archimedes
-*/
-
 module user_io
 (
   input        CLK, // fast clock, 200-250 MHz
   input        SPI_CLK,
   input        SPI_SS_IO,
-  output       reg SPI_MISO,
   input        SPI_MOSI,
-  input [7:0]  CORE_TYPE,
+  inout        SPI_MISO, // 3-state
   output [5:0] JOY0,
   output [5:0] JOY1,
   output [1:0] BUTTONS,
   output [1:0] SWITCHES
 );
+
+/*
+#define CORE_TYPE_UNKNOWN   0x55
+#define CORE_TYPE_DUMB      0xa0   // core without any io controller interaction
+#define CORE_TYPE_MINIMIG   0xa1   // minimig amiga core
+#define CORE_TYPE_PACE      0xa2   // core from pacedev.net (joystick only)
+#define CORE_TYPE_MIST      0xa3   // mist atari st core
+#define CORE_TYPE_8BIT      0xa4   // atari 800/c64 like core
+#define CORE_TYPE_MINIMIG2  0xa5   // new Minimig with AGA
+#define CORE_TYPE_ARCHIE    0xa6   // Acorn Archimedes
+*/
+parameter [7:0] CORE_TYPE = 8'hA4; // 8-bit Atari-800/C-64 and similar DB9 joystyx
 
 reg [6:0]   sbuf;
 reg [7:0]   cmd;
@@ -30,10 +30,14 @@ reg [5:0]   joystick0;
 reg [5:0]   joystick1;
 reg [3:0]   but_sw;
 
+reg SPI_MISO_INTERNAL;
+
 assign JOY0 = joystick0;
 assign JOY1 = joystick1;
 assign BUTTONS = but_sw[1:0];
 assign SWITCHES = but_sw[3:2];
+
+assign SPI_MISO = SPI_SS_IO == 1 ? 1'bZ : SPI_MISO_INTERNAL;
 
 reg [1:0] SPI_CLK_SHIFT;
 
@@ -41,23 +45,13 @@ always@(posedge CLK)
 begin
   SPI_CLK_SHIFT <= {SPI_CLK, SPI_CLK_SHIFT[1]};
 end
-   
+
 always@(posedge CLK)
 begin
   // negedge SPI_CLK
   if(SPI_CLK_SHIFT == 2'b01)
   begin
-    if(SPI_SS_IO == 1)
-    begin
-      SPI_MISO <= 1'bZ;
-    end else begin
-      if(cnt < 8)
-      begin
-        SPI_MISO <= CORE_TYPE[7-cnt];
-      end else begin
-        SPI_MISO <= 1'bZ;
-      end
-    end
+    SPI_MISO_INTERNAL <= CORE_TYPE[7-cnt[2:0]];
   end
 end
 		

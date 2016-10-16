@@ -3,28 +3,11 @@
 -- http://darfpga.blogspot.fr
 --
 -- Main features
---  PS2 keyboard input
---  wm8731 sound output
---  NO board SRAM used
+--  USER02 simple buttons input
+--  MIST DB9 joystick input
+--  PS2 keyboard input (scancodes work, need rework)
+--  NO board DDR3 used
 --
--- Uses pll for 18MHz and 11MHz generation from 50MHz
---
--- Board switch :
---   0 - 7 : dip switch
---             0-1 : lives 3-6
---             3-2 : bonus life 30K-60K
---               4 : coin 1-2
---             6-5 : unkonwn
---               7 : upright-cocktail  
---   8 -10 : sound_select
---             0XX : all mixed (normal)
---             100 : sound1 only 
---             101 : sound2 only
---             110 : sound3 only
---             111 : melody only 
--- Board key :
---      0 : reset
---   
 ---------------------------------------------------------------------------------
 
 library ieee;
@@ -54,7 +37,7 @@ port
   MCU_SD_D3_SS1, SS2_FPGA, SS3_OSD, SS4_SD_DIRECT: in std_logic;
   FPGA_MISO_CONF_DATA0: in std_logic;
   MCU_SD_SCLK_SCK, MCU_SD_CMD_MOSI: in std_logic;
-  MCU_SD_D0_MISO: out std_logic;
+  MCU_SD_D0_MISO: inout std_logic;
   -- AUDIO
   AUDIO_L, AUDIO_R: out std_logic;
   -- HDMI
@@ -103,10 +86,9 @@ architecture struct of phoenix_esa11 is
       SPI_SS_IO: in STD_LOGIC;
       SPI_CLK: in STD_LOGIC;
       SPI_MOSI: in STD_LOGIC;
-      SPI_MISO: out STD_LOGIC;
+      SPI_MISO: inout STD_LOGIC;
       JOY0, JOY1: out STD_LOGIC_VECTOR(5 downto 0);
-      BUTTONS, SWITCHES: out STD_LOGIC_VECTOR(1 downto 0);
-      CORE_TYPE: in STD_LOGIC_VECTOR(7 downto 0)
+      BUTTONS, SWITCHES: out STD_LOGIC_VECTOR(1 downto 0)
   );
   end component;
 
@@ -206,8 +188,7 @@ begin
     JOY0 => S_db9_joy0,
     JOY1 => S_db9_joy1,
     BUTTONS  => open,
-    SWITCHES => open,
-    CORE_TYPE => x"A4" -- 8-bit core (Atari-800, C-64 and like)
+    SWITCHES => open
   );
   
   -- joystick to inputs
