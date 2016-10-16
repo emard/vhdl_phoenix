@@ -11,7 +11,7 @@ entity ddr_out is
   port
   (
     iclkp: in std_logic; -- only this is used
-    iclkn: in std_logic; -- not needed for xilinx
+    iclkn: in std_logic := '0'; -- not needed for xilinx
     ireset: in std_logic := '0';
     idata: in std_logic_vector(1 downto 0);
     odata: out std_logic
