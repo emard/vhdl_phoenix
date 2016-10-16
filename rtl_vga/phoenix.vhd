@@ -13,6 +13,7 @@ generic (
   C_test_picture: boolean := false;
   C_tile_rom: boolean := true; -- false: disable tile ROM to try game logic on small FPGA
   -- reduce ROMs: 14 is normal game, 13 will draw initial screen, 12 will repeatedly blink 1 line of garbage
+  C_autofire: boolean := false;
   C_audio: boolean := true;
   C_prog_rom_addr_bits: integer range 12 to 14 := 14; 
   C_vga: boolean := true
@@ -130,15 +131,33 @@ architecture struct of phoenix is
  signal coin         : std_logic;
  signal player_start : std_logic_vector(1 downto 0);
  signal buttons      : std_logic_vector(3 downto 0);
+ signal R_autofire   : std_logic_vector(21 downto 0);
 begin
 
 -- game core uses inverted control logic
 coin <= not btn_coin; -- insert coin
 player_start <= not btn_player_start; -- select 1 or 2 players
-buttons(0) <= not btn_fire; -- Fire
 buttons(1) <= not btn_right; -- Right
 buttons(2) <= not btn_left; -- Left
 buttons(3) <= not btn_barrier; -- Protection 
+
+G_not_autofire: if not C_autofire generate
+  buttons(0) <= not btn_fire; -- Fire
+end generate;
+
+G_yes_autofire: if C_autofire generate
+  process(clk_pixel)
+  begin
+    if rising_edge(clk_pixel) then
+      if btn_fire='1' then
+        R_autofire <= R_autofire-1;
+      else
+        R_autofire <= (others => '0');
+      end if;
+    end if;
+  end process;
+  buttons(0) <= not R_autofire(R_autofire'high);
+end generate;
 
 -- video address/sync generator
 G_tv: if not C_vga generate

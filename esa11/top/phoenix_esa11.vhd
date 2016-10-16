@@ -184,6 +184,7 @@ begin
   phoenix: entity work.phoenix
   generic map
   (
+    C_autofire => true,
     C_audio => true,
     C_vga => true
   )
