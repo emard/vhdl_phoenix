@@ -229,6 +229,8 @@ set_property -dict {PACKAGE_PIN U3 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_C
 set_property -dict {PACKAGE_PIN V3 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_D0_MISO]
 set_property -dict {PACKAGE_PIN AB1 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_D3_SS1]
 set_property -dict {PACKAGE_PIN V2 IOSTANDARD LVTTL DRIVE 4} [get_ports MCU_SD_SCLK_SCK]
+create_clock -name {clkspi}  [get_ports {MCU_SD_SCLK_SCK}] -period {40.000}  -add
+set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets MCU_SD_SCLK_SCK_IBUF]
 #set_property -dict {PACKAGE_PIN F8 IOSTANDARD LVTTL DRIVE 4} [get_ports MGTRREF_216]
 
 set_property -dict {PACKAGE_PIN U2 IOSTANDARD LVTTL DRIVE 4} [get_ports SS2_FPGA]
