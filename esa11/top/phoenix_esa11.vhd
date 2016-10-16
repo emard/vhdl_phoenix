@@ -3,9 +3,10 @@
 -- http://darfpga.blogspot.fr
 --
 -- Main features
+--  USER02 DIP Switch 1 on/off HDMI-audio
 --  USER02 simple buttons input
---  MIST DB9 joystick input
---  PS2 keyboard input (scancodes work, need rework)
+--  MIST DB9 joystick input (works after pressing M-RES button...)
+--  PS2 keyboard input (scancodes received, but decoding doesn't work yet)
 --  NO board DDR3 used
 --
 ---------------------------------------------------------------------------------
@@ -30,7 +31,9 @@ port
   M_DIP: in std_logic_vector(3 downto 0);
   M_7SEG_A, M_7SEG_B, M_7SEG_C, M_7SEG_D, M_7SEG_E, M_7SEG_F, M_7SEG_G, M_7SEG_DP: out std_logic;
   M_7SEG_DIGIT: out std_logic_vector(3 downto 0);
-  M_LED: out std_logic_vector(7 downto 0);
+  LED: out std_logic_vector(2 downto 0); -- onboard LEDs
+  M_LED: out std_logic_vector(7 downto 0); -- USER02 LEDs
+  
   -- PS/2 keyboard
   PS2_A_DATA, PS2_A_CLK, PS2_B_DATA, PS2_B_CLK: inout std_logic;
   -- MIST joystick
@@ -117,7 +120,7 @@ architecture struct of phoenix_esa11 is
 
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
-  signal S_db9_joy0, S_db9_joy1: std_logic_vector(5 downto 0);
+  signal S_db9_joy0, R_db9_joy0, S_db9_joy1, R_db9_joy1: std_logic_vector(5 downto 0);
   signal S_db9_btn, S_db9_sw: std_logic_vector(1 downto 0);
   
   signal reset        : std_logic;
@@ -185,11 +188,19 @@ begin
     SPI_CLK => MCU_SD_SCLK_SCK, -- input from ARM SPI is 24 MHz
     SPI_MOSI => MCU_SD_CMD_MOSI,
     SPI_MISO => MCU_SD_D0_MISO,
-    JOY0 => S_db9_joy0,
+    JOY0 => open,
     JOY1 => S_db9_joy1,
     BUTTONS  => open,
     SWITCHES => open
   );
+  
+  -- register joystick state to off-load high speed routing
+  process(clk_pixel)
+  begin
+    if rising_edge(clk_pixel) then
+      R_db9_joy1 <= S_db9_joy1;
+    end if;
+  end process;
   
   -- joystick to inputs
 --  coin            <= (not M_BTN(2)) or (not JoyPCFRLDU(7)); -- F3 : Insert coin
@@ -200,13 +211,19 @@ begin
 --  button_protect  <= (not M_BTN(1)) or S_db9_joy1(5) or (not JoyPCFRLDU(0)); -- UP arrow : Protection
 --  button_fire     <= (not M_BTN(3)) or S_db9_joy1(4) or (not JoyPCFRLDU(4)); -- SPACE : Fire
 
-  coin            <= (not M_BTN(2));
-  player_start(0) <= (not M_BTN(3)) or S_db9_joy1(3);
-  player_start(1) <= (not M_BTN(1)) or S_db9_joy1(2);
-  button_left     <= (not M_BTN(0)) or S_db9_joy1(1);
-  button_right    <= (not M_BTN(4)) or S_db9_joy1(0);
-  button_protect  <= (not M_BTN(1)) or S_db9_joy1(4);
-  button_fire     <= (not M_BTN(3)) or S_db9_joy1(5);
+  -- register all controls to off-load routing
+  process(clk_pixel)
+  begin
+    if rising_edge(clk_pixel) then
+      coin            <= (not M_BTN(1)) or R_db9_joy1(2);
+      player_start(0) <= (not M_BTN(3)) or R_db9_joy1(3);
+      player_start(1) <= (not M_BTN(2));
+      button_left     <= (not M_BTN(0)) or R_db9_joy1(1);
+      button_right    <= (not M_BTN(4)) or R_db9_joy1(0);
+      button_protect  <= (not M_BTN(2)) or R_db9_joy1(4);
+      button_fire     <= (not M_BTN(3)) or R_db9_joy1(5);
+    end if;
+  end process;
 
   phoenix: entity work.phoenix
   generic map
@@ -245,8 +262,13 @@ begin
   M_7SEG_G <= kbd_scancode(6);
   M_7SEG_DP <= kbd_scancode(7);
   M_7SEG_DIGIT <= "0001";
+  
+  -- indication with onboard LEDs
+  LED(0) <= coin or player_start(0) or player_start(1);
+  LED(1) <= button_left or button_right;
+  LED(2) <= button_fire or button_protect;
 
-  -- some debugging with LEDs
+  -- indication with USER02 LEDs
   M_LED(0) <= coin;
   M_LED(1) <= player_start(0);
   M_LED(2) <= player_start(1);

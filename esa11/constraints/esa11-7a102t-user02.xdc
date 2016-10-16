@@ -28,14 +28,22 @@ set_property -dict {PACKAGE_PIN D19 IOSTANDARD LVTTL} [get_ports {M_HEX[3]}]
 #
 #	LEDs	-------------------------------------------------------------------
 #
-# set_property -dict {PACKAGE_PIN N18 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[0]}]
-# set_property -dict {PACKAGE_PIN K18 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[1]}]
-# set_property -dict {PACKAGE_PIN C22 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[2]}]
+set_property -dict {PACKAGE_PIN N18 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[0]}]
+# LED0 B31
+set_property -dict {PACKAGE_PIN K18 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[1]}]
+# LED1 A31
+set_property -dict {PACKAGE_PIN C22 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[2]}]
+# LED2 B18
 set_property -dict {PACKAGE_PIN D21 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[3]}]
+# LED3 A18
 set_property -dict {PACKAGE_PIN G16 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[4]}]
+# LED4 B15
 set_property -dict {PACKAGE_PIN D17 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[5]}]
+# LED5 C14
 set_property -dict {PACKAGE_PIN A14 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[6]}]
+# LED6 A2
 set_property -dict {PACKAGE_PIN B15 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[7]}]
+# LED7 B2
 
 #
 #	EXPMODS -------------------------------------------------------------------

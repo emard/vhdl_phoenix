@@ -22,9 +22,9 @@ set_property -dict {PACKAGE_PIN R4 IOSTANDARD LVDS_25} [get_ports i_100MHz_P]
 #
 #	LEDs
 #
-set_property -dict {PACKAGE_PIN U1 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[0]}]
-set_property -dict {PACKAGE_PIN W1 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[1]}]
-set_property -dict {PACKAGE_PIN T1 IOSTANDARD LVTTL DRIVE 4} [get_ports {M_LED[2]}]
+set_property -dict {PACKAGE_PIN U1 IOSTANDARD LVTTL DRIVE 4} [get_ports {LED[0]}]
+set_property -dict {PACKAGE_PIN W1 IOSTANDARD LVTTL DRIVE 4} [get_ports {LED[1]}]
+set_property -dict {PACKAGE_PIN T1 IOSTANDARD LVTTL DRIVE 4} [get_ports {LED[2]}]
 
 #
 #	UARTs
