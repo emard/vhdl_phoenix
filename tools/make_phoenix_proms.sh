@@ -1,5 +1,5 @@
 #!/bin/sh -e
-
+mkdir -p phoenix_unzip/roms
 cd phoenix_unzip/roms
 
 ../../make_vhdl_prom ../b1-ic39.3b   prom_ic39.vhd
