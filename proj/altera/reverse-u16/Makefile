@@ -38,6 +38,7 @@ SRCS = \
 top/phoenix_reverseu16.vhd \
 clocks/clk_50M_125M_25M.vhd \
 clocks/pll_50M_250M_25M_83M333.vhd \
+joystick/joystick_saitek_cyborg_rumble.vhd \
 ../../../rtl_dar/gen_ram.vhd \
 ../../../rtl_dar/io_ps2_keyboard.vhd \
 ../../../rtl_dar/kbd_joystick.vhd \

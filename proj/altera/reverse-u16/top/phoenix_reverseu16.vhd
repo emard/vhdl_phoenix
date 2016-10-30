@@ -17,7 +17,8 @@ entity phoenix_reverseu16 is
 generic
 (
   C_hdmi_generic_serializer: boolean := false; -- serializer type: false: vendor-specific, true: generic=vendor-agnostic
-  C_hdmi_audio: boolean := true -- HDMI generator type: false: video only, true: video+audio capable
+  C_hdmi_audio: boolean := true; -- HDMI generator type: false: video only, true: video+audio capable
+  C_hdmi_audio_islands: boolean := false
 );
 port
 (
@@ -39,13 +40,14 @@ end;
 architecture struct of phoenix_reverseu16 is
   signal clk_pixel, clk_pixel_shift: std_logic;
 
-  signal joy_report: std_logic_vector(71 downto 0);
-  signal S_joy_hat: std_logic_vector(3 downto 0);
-  signal S_joy_left, S_joy_right: std_logic;
-  signal S_joy_left_pad_x: std_logic_vector(7 downto 0);
+  signal hid_report: std_logic_vector(71 downto 0);
+  signal S_joy_coin: std_logic;
+  signal S_joy_player: std_logic_vector(1 downto 0);
+  signal S_joy_left, S_joy_right, S_joy_barrier, S_joy_fire: std_logic;
 
   signal S_audio: std_logic_vector(11 downto 0);
- 
+  signal S_audio_enable: std_logic;
+  
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
   signal S_hdmi_pd0, S_hdmi_pd1, S_hdmi_pd2: std_logic_vector(9 downto 0);
   signal tmds_d: std_logic_vector(3 downto 0);
@@ -97,16 +99,25 @@ begin
     CLK => clk_pixel, 
     RESET_N => '1',
     USB_TX => USB_TX,
-    HID_REPORT => joy_report,
+    HID_REPORT => hid_report,
     NEW_VNC2_MODE_N => usb_cs_n,
     NEW_FRAME => usb_io1
   );
   -- dp <= usb_tx; -- debug serial traffic to external rs232
-  
-  S_joy_hat <= joy_report(17*4+3 downto 17*4);
-  S_joy_left_pad_x <= joy_report(4*4+7 downto 4*4);
-  S_joy_left  <= '1' when S_joy_hat=5 or S_joy_hat=6 or S_joy_hat=7 or S_joy_left_pad_x < 126 else '0';
-  S_joy_right <= '1' when S_joy_hat=1 or S_joy_hat=2 or S_joy_hat=3 or S_joy_left_pad_x > 130 else '0';
+
+  I_joystsick: entity work.joystick
+  port map
+  (
+    clk => clk_pixel,
+    hid_report => hid_report,
+    audio_enable => S_audio_enable,
+    coin => S_joy_coin,
+    player => S_joy_player,
+    left => S_joy_left,
+    right => S_joy_right,
+    barrier => S_joy_barrier,
+    fire => S_joy_fire
+  );
 
   phoenix : entity work.phoenix
   generic map
@@ -120,15 +131,14 @@ begin
   (
     clk_pixel    => clk_pixel,
     reset        => reset,
-    osd_hex      => joy_report(71 downto 8),
+    osd_hex      => hid_report(71 downto 8),
     dip_switch   => dip_switch,
-    btn_coin     => joy_report(16*4+2), -- FPS
-    btn_player_start(0) => joy_report(15*4+2), -- BACK
-    btn_player_start(1) => joy_report(15*4+3), -- START
-    btn_left     => S_joy_left, -- hat left
-    btn_right    => S_joy_right, -- hat right
-    btn_barrier  => joy_report(13*4+2), -- blue X
-    btn_fire     => joy_report(15*4+1), -- right trigger
+    btn_coin     => S_joy_coin,
+    btn_player_start => S_joy_player,
+    btn_left     => S_joy_left,
+    btn_right    => S_joy_right,
+    btn_barrier  => S_joy_barrier,
+    btn_fire     => S_joy_fire,
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
@@ -185,6 +195,7 @@ begin
     S_vga_r8 <= S_vga_r & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0) & S_vga_r(0);
     S_vga_g8 <= S_vga_g & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0) & S_vga_g(0);
     S_vga_b8 <= S_vga_b & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0) & S_vga_b(0);
+
     av_hdmi_out: entity work.av_hdmi
     generic map
     (
@@ -202,7 +213,7 @@ begin
       I_BLANK        => S_vga_blank,
       I_HSYNC        => not S_vga_hsync,
       I_VSYNC        => not S_vga_vsync,
-      I_AUDIO_ENABLE => '0',
+      I_AUDIO_ENABLE => S_audio_enable,
       I_AUDIO_PCM_L  => S_audio & "0000",
       I_AUDIO_PCM_R  => S_audio & "0000",
       O_TMDS_PD0     => S_HDMI_PD0,
