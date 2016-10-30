@@ -16,16 +16,16 @@
 #
 # -------------------------------------------------------------------------- #
 #
-# Quartus II 64-Bit
+# Quartus II 32-bit
 # Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
-# Date created = 07:59:14  April 02, 2016
+# Date created = 17:36:59  October 30, 2016
 #
 # -------------------------------------------------------------------------- #
 #
 # Notes:
 #
 # 1) The default values for assignments are stored in the file:
-#		phoenix_de2_assignment_defaults.qdf
+#		project_assignment_defaults.qdf
 #    If this file doesn't exist, see file:
 #		assignment_defaults.qdf
 #
@@ -40,19 +40,25 @@ set_global_assignment -name FAMILY "Cyclone II"
 set_global_assignment -name DEVICE EP2C35F672C6
 set_global_assignment -name TOP_LEVEL_ENTITY phoenix_de2
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
-set_global_assignment -name PROJECT_CREATION_TIME_DATE "07:59:14  APRIL 02, 2016"
-set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
-set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "17:36:59  OCTOBER 30, 2016"
+set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"# -------------------------------------------------------------------------- #
+#set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
 set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
-set_global_assignment -name DEVICE_FILTER_PIN_COUNT 672
-set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 6
+#set_global_assignment -name DEVICE_FILTER_PACKAGE FBGA
+#set_global_assignment -name DEVICE_FILTER_PIN_COUNT 256
+#set_global_assignment -name DEVICE_FILTER_SPEED_GRADE 6
 set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name NOMINAL_CORE_SUPPLY_VOLTAGE 1.2V
 set_global_assignment -name EDA_SIMULATION_TOOL "ModelSim-Altera (VHDL)"
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
 set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
 set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+#
 set_location_assignment PIN_N25 -to SW[0]
 set_location_assignment PIN_N26 -to SW[1]
 set_location_assignment PIN_P25 -to SW[2]
@@ -479,32 +485,87 @@ set_location_assignment PIN_V24 -to GPIO_1[32]
 set_location_assignment PIN_V23 -to GPIO_1[33]
 set_location_assignment PIN_W25 -to GPIO_1[34]
 set_location_assignment PIN_W23 -to GPIO_1[35]
-set_global_assignment -name ENABLE_SIGNALTAP OFF
-set_global_assignment -name USE_SIGNALTAP_FILE output_files/stp1.stp
-set_global_assignment -name SLD_FILE "E:/XFER_PERSO/Re_creation/DVD_ARCADE_04/travail/vhdl/vhdl_phoenix/de2/output_files/stp1_auto_stripped.stp"
-set_global_assignment -name VHDL_FILE ../rtl_T80/T8080se.vhd
-set_global_assignment -name VHDL_FILE ../rtl_T80/T80_Reg.vhd
-set_global_assignment -name VHDL_FILE ../rtl_T80/T80_Pack.vhd
-set_global_assignment -name VHDL_FILE ../rtl_T80/T80_MCode.vhd
-set_global_assignment -name VHDL_FILE ../rtl_T80/T80_ALU.vhd
-set_global_assignment -name VHDL_FILE ../rtl_T80/T80.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/kbd_joystick.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/io_ps2_keyboard.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/gen_ram.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix_prog.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/prom_palette_ic41.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/prom_palette_ic40.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/prom_ic24.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/prom_ic23.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/prom_ic40.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/prom_ic39.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix_video.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/wm8731_dac.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/pll50_to_11_and_18.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix_music.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix_effect3.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix_effect2.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix_effect1.vhd
-set_global_assignment -name VHDL_FILE ../rtl_dar/phoenix_de2.vhd
+#
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_CLK
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to PS2_DAT
+#
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[0]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[1]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[2]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[3]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[4]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[5]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[6]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[7]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[8]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[9]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[10]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[11]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[12]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[13]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[14]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[15]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[16]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[17]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[18]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[19]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[20]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[21]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[22]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[23]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[24]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[25]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[26]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[27]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[28]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[29]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[30]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[31]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[32]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[33]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[34]
+set_instance_assignment -name WEAK_PULL_UP_RESISTOR ON -to GPIO_0[35]
+#
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
+
+set_global_assignment -name ADV_NETLIST_OPT_SYNTH_GATE_RETIME ON
+set_global_assignment -name SOURCE_FILE top/phoenix_de2.vhd
+set_global_assignment -name SOURCE_FILE clocks/clk_50_250_25MHz.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/gen_ram.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/io_ps2_keyboard.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/kbd_joystick.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/phoenix_effect1.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/phoenix_effect2.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/phoenix_effect3.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/phoenix_music.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/phoenix_video.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_dar/wm8731_dac.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_T80/T80_ALU.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_T80/T80_MCode.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_T80/T80_Pack.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_T80/T80_Reg.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_T80/T80.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_T80/T80s.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_T80/T8080se.vhd
+set_global_assignment -name SOURCE_FILE ../../../tools/phoenix_unzip/roms/phoenix_prog.vhd
+set_global_assignment -name SOURCE_FILE ../../../tools/phoenix_unzip/roms/prom_ic23.vhd
+set_global_assignment -name SOURCE_FILE ../../../tools/phoenix_unzip/roms/prom_ic24.vhd
+set_global_assignment -name SOURCE_FILE ../../../tools/phoenix_unzip/roms/prom_ic39.vhd
+set_global_assignment -name SOURCE_FILE ../../../tools/phoenix_unzip/roms/prom_ic40.vhd
+set_global_assignment -name SOURCE_FILE ../../../tools/phoenix_unzip/roms/prom_palette_ic40.vhd
+set_global_assignment -name SOURCE_FILE ../../../tools/phoenix_unzip/roms/prom_palette_ic41.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl/osd/osd.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl/osd/char_rom.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_vga/phoenix.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_vga/phoenix_video_vga.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_vga/vga.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_vga/hdmi/vga2dvid.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_vga/hdmi/tmds_encoder.vhd
+set_global_assignment -name SOURCE_FILE ../../../rtl_vga/hdmi_out.vhd
+set_global_assignment -name SOURCE_FILE "../../../rtl_vga/hdmi-audio/av_hdmi.vhd"
+set_global_assignment -name SOURCE_FILE "../../../rtl_vga/hdmi-audio/hdmidataencoder.v"
+set_global_assignment -name SOURCE_FILE "../../../rtl_vga/hdmi-audio/encoder.vhd"
+set_global_assignment -name SOURCE_FILE ../../../rtl_vga/altera/cyclone4/serializer.vhd
+set_global_assignment -name SOURCE_FILE "../../../rtl_vga/hdmi-audio/hdmidelay.vhd"
+set_global_assignment -name SOURCE_FILE "../../../rtl_vga/hdmi-audio/serializer_generic.vhd"
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
