@@ -16,11 +16,14 @@ generic (
   C_autofire: boolean := false;
   C_audio: boolean := true;
   C_prog_rom_addr_bits: integer range 12 to 14 := 14; 
+  C_osd: boolean := false;
   C_vga: boolean := true
 );
 port(
  clk_pixel    : in std_logic; -- 11 MHz for TV, 25 MHz for VGA
  reset        : in std_logic;
+ 
+ osd_hex      : in std_logic_vector(63 downto 0) := (others => '0');
 
  dip_switch   : in std_logic_vector(7 downto 0);
  -- game controls, normal logic '1':pressed, '0':released
@@ -62,8 +65,12 @@ architecture struct of phoenix is
  signal hblank_bkgrd : std_logic;
  signal hblank_frgrd : std_logic; 
  signal S_vga_blank, S_vga_vblank: std_logic;
+ signal S_vga_vsync, S_vga_hsync: std_logic;
+ signal S_vga_fetch_next: std_logic;
+ signal S_osd_pixel: std_logic;
+ signal S_osd_green: std_logic_vector(1 downto 0) := (others => '0');
  signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
- 
+
  signal cpu_adr  : std_logic_vector(15 downto 0);
  signal cpu_di   : std_logic_vector( 7 downto 0);
  signal cpu_do   : std_logic_vector( 7 downto 0);
@@ -216,7 +223,7 @@ G_vga: if C_vga generate
   port map (
       clk_pixel => clk_pixel,
       test_picture => '1', -- shows test picture when VGA is disabled (on startup)
-      fetch_next => open,
+      fetch_next => S_vga_fetch_next,
       line_repeat => open,
       red_byte    => (others => '0'), -- framebuffer inputs not used
       green_byte  => (others => '0'), -- rgb signal is synchronously generated
@@ -228,28 +235,48 @@ G_vga: if C_vga generate
       vga_r(7 downto 6) => S_vga_r, vga_r(5 downto 0) => open,
       vga_g(7 downto 6) => S_vga_g, vga_g(5 downto 0) => open,
       vga_b(7 downto 6) => S_vga_b, vga_b(5 downto 0) => open,
-      vga_hsync => vga_hsync,
-      vga_vsync => vga_vsync,
+      vga_hsync => S_vga_hsync,
+      vga_vsync => S_vga_vsync,
       vga_blank => S_vga_blank, -- '1' when outside of horizontal or vertical graphics area
       vga_vblank => S_vga_vblank -- '1' when outside of vertical graphics area (used for vblank interrupt)
   );
+  vga_hsync <= S_vga_hsync;
+  vga_vsync <= S_vga_vsync;
   --adrsel <= '1' when hcnt < 32 else '0';
   --rdy <= S_vga_blank;
   --vblank <= S_vga_vblank;
   --hblank_frgrd <= S_vga_blank and not S_vga_vblank;
   --hblank_bkgrd <= S_vga_blank and not S_vga_vblank;
   vcnt <= S_vcnt(8 downto 1);
-  
+
+  -- OSD overlay for the green channel
+  G_osd: if C_osd generate
+  I_osd: entity work.osd
+  --generic map -- workaround for wrong video size
+  --(
+  --  C_resolution_x => C_resolution_x
+  --)
+  port map
+  (
+    clk_pixel => clk_pixel,
+    vsync => S_vga_vsync,
+    fetch_next => S_vga_fetch_next,
+    probe_in(63 downto 0) => osd_hex(63 downto 0),
+    osd_out => S_osd_pixel
+  );
+  S_osd_green <= (others => S_osd_pixel);
+  end generate;
+
   G_yes_test_picture: if C_test_picture generate
     -- only test picture, no game
     vga_r     <= S_vga_r;
-    vga_g     <= S_vga_g;
+    vga_g     <= S_vga_g or S_osd_green;
     vga_b     <= S_vga_b;
   end generate;
   G_no_test_picture: if not C_test_picture generate
     -- normal game picture
     vga_r     <= rgb_1(0) & rgb_0(0);
-    vga_g     <= rgb_1(2) & rgb_0(2);
+    vga_g     <= (rgb_1(2) & rgb_0(2)) or S_osd_green;
     vga_b     <= rgb_1(1) & rgb_0(1);
   end generate;
   vga_blank <= S_vga_blank;
