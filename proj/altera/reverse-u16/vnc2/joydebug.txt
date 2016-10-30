@@ -1,0 +1,190 @@
+# Joystick debugging
+
+lsusb -vvv -d 06a3:f51a
+Bus 001 Device 002: ID 06a3:f51a Saitek PLC 
+Device Descriptor:
+  bLength                18
+  bDescriptorType         1
+  bcdUSB               1.10
+  bDeviceClass            0 (Defined at Interface level)
+  bDeviceSubClass         0 
+  bDeviceProtocol         0 
+  bMaxPacketSize0         8
+  idVendor           0x06a3 Saitek PLC
+  idProduct          0xf51a 
+  bcdDevice            1.00
+  iManufacturer           1 Saitek PLC
+  iProduct                2 Cyborg Rumble Pad
+  iSerial                 0 
+  bNumConfigurations      1
+  Configuration Descriptor:
+    bLength                 9
+    bDescriptorType         2
+    wTotalLength           41
+    bNumInterfaces          1
+    bConfigurationValue     1
+    iConfiguration          0 
+    bmAttributes         0x80
+      (Bus Powered)
+    MaxPower              500mA
+    Interface Descriptor:
+      bLength                 9
+      bDescriptorType         4
+      bInterfaceNumber        0
+      bAlternateSetting       0
+      bNumEndpoints           2
+      bInterfaceClass         3 Human Interface Device
+      bInterfaceSubClass      0 No Subclass
+      bInterfaceProtocol      0 None
+      iInterface              0 
+        HID Device Descriptor:
+          bLength                 9
+          bDescriptorType        33
+          bcdHID               1.10
+          bCountryCode           33 US
+          bNumDescriptors         1
+          bDescriptorType        34 Report
+          wDescriptorLength     631
+         Report Descriptors: 
+           ** UNAVAILABLE **
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x81  EP 1 IN
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval              12
+      Endpoint Descriptor:
+        bLength                 7
+        bDescriptorType         5
+        bEndpointAddress     0x02  EP 2 OUT
+        bmAttributes            3
+          Transfer Type            Interrupt
+          Synch Type               None
+          Usage Type               Data
+        wMaxPacketSize     0x0008  1x 8 bytes
+        bInterval              20
+Device Status:     0x0000
+  (Bus Powered)
+
+usbhid-dump -m 06a3:f51a
+001:002:000:DESCRIPTOR         1477587529.995323
+ 05 01 09 04 A1 01 09 01 A1 00 85 01 09 30 15 00
+ 26 FF 00 35 00 46 FF 00 75 08 95 01 81 02 09 31
+ 81 02 09 33 81 02 09 34 81 02 09 32 25 3F 45 3F
+ 75 06 81 02 05 09 19 01 29 0D 25 01 45 01 75 01
+ 95 0D 81 02 95 01 81 03 05 01 09 39 25 07 46 3B
+ 01 55 00 65 44 75 04 81 42 65 00 C0 05 0F 09 92
+ A1 02 85 02 09 A0 09 9F 25 01 45 00 75 01 95 02
+ 81 02 75 06 95 01 81 03 09 22 75 07 25 7F 81 02
+ 09 94 75 01 25 01 81 02 C0 09 21 A1 02 85 0B 09
+ 22 26 FF 00 75 08 91 02 09 53 25 0D 91 02 09 50
+ 27 FE FF 00 00 47 FE FF 00 00 75 10 55 FD 66 01
+ 10 91 02 55 00 65 00 09 54 55 FD 66 01 10 91 02
+ 55 00 65 00 09 A7 55 FD 66 01 10 91 02 55 00 65
+ 00 C0 09 5A A1 02 85 0C 09 22 26 FF 00 45 00 75
+ 08 91 02 09 5C 26 10 27 46 10 27 75 10 55 FD 66
+ 01 10 91 02 55 00 65 00 09 5B 25 7F 75 08 91 02
+ 09 5E 26 10 27 75 10 55 FD 66 01 10 91 02 55 00
+ 65 00 09 5D 25 7F 75 08 91 02 C0 09 73 A1 02 85
+ 0D 09 22 26 FF 00 45 00 91 02 09 70 15 81 25 7F
+ 36 F0 D8 46 10 27 91 02 C0 09 6E A1 02 85 0E 09
+ 22 15 00 26 FF 00 35 00 45 00 91 02 09 70 25 7F
+ 46 10 27 91 02 09 6F 15 81 36 F0 D8 91 02 09 71
+ 15 00 26 FF 00 35 00 46 68 01 91 02 09 72 75 10
+ 26 10 27 46 10 27 55 FD 66 01 10 91 02 55 00 65
+ 00 C0 09 77 A1 02 85 51 09 22 25 7F 45 00 75 08
+ 91 02 09 78 A1 02 09 7B 09 79 09 7A 15 01 25 03
+ 91 00 C0 09 7C 15 00 26 FE 00 91 02 C0 09 92 A1
+ 02 85 52 09 96 A1 02 09 9A 09 99 09 97 09 98 09
+ 9B 09 9C 15 01 25 06 91 00 C0 C0 05 FF 0A 01 03
+ A1 02 85 40 0A 02 03 A1 02 1A 11 03 2A 20 03 25
+ 10 91 00 C0 0A 03 03 15 00 27 FF FF 00 00 75 10
+ 91 02 C0 05 0F 09 7D A1 02 85 43 09 7E 26 80 00
+ 46 10 27 75 08 91 02 C0 09 7F A1 02 85 0B 09 80
+ 26 FF 7F 45 00 75 0F B1 03 09 A9 25 01 75 01 B1
+ 03 09 83 26 FF 00 75 08 B1 03 C0 09 AB A1 03 85
+ 15 09 25 A1 02 09 26 09 30 09 32 09 31 09 33 09
+ 34 15 01 25 06 B1 00 C0 C0 09 89 A1 03 85 16 09
+ 8B A1 02 09 8C 09 8D 09 8E 25 03 B1 00 C0 09 22
+ 15 00 26 FE 00 B1 02 C0 09 90 A1 03 85 50 09 22
+ 26 FF 00 91 02 C0 C0
+
+dump joystick traffic
+
+usbhid-dump -m 06a3:f51a -es
+
+pressed hat left, repeatedly reports this:
+
+001:002:000:STREAM             1477588015.704007
+ 01 80 80 80 80 20 00 60
+
+001:002:000:STREAM             1477588015.712007
+ 01 80 80 80 80 20 00 60
+
+released hat left, reports only once this:
+
+001:002:000:STREAM             1477588015.720007
+ 01 80 80 80 80 20 00 F0
+
+
+pressed hat up, repeatedly reports this:
+
+001:002:000:STREAM             1477588197.137387
+ 01 80 80 80 80 20 00 00
+
+001:002:000:STREAM             1477588197.145419
+ 01 80 80 80 80 20 00 00
+
+001:002:000:STREAM             1477588197.153366
+ 01 80 80 80 80 20 00 00
+
+released hat up, reports only once this:
+
+001:002:000:STREAM             1477588197.161371
+ 01 80 80 80 80 20 00 F0
+
+
+pressed left paddle, repeatedly reports this:
+
+001:002:000:STREAM             1477588375.986829
+ 01 80 80 80 80 20 00 F1
+
+001:002:000:STREAM             1477588375.994889
+ 01 80 80 80 80 20 00 F1
+
+001:002:000:STREAM             1477588376.002853
+ 01 80 80 80 80 20 00 F1
+
+released left paddle, reports only once this:
+
+001:002:000:STREAM             1477588376.010892
+ 01 80 80 80 80 20 00 F0
+
+
+pressed right paddle, repeatedly reports this:
+
+001:002:000:STREAM             1477588462.867584
+ 01 80 80 80 80 20 00 F2
+
+001:002:000:STREAM             1477588462.875548
+ 01 80 80 80 80 20 00 F2
+
+001:002:000:STREAM             1477588462.883587
+ 01 80 80 80 80 20 00 F2
+
+released right paddle, reports only once this:
+
+001:002:000:STREAM             1477588462.891523
+ 01 80 80 80 80 20 00 F0
+
+# VNC2 traffic monitoring
+
+Using linux, connect external usbserial /dev/ttyUSB0
+to FPGA and route the VNC2 USB_TX line to external pin
+
+stty clocal 115200 < /dev/ttyUSB0
+cat < /dev/ttyUSB0 | hexdump -e '9/1 "%02X ""\t"" "'
