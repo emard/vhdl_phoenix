@@ -48,14 +48,14 @@ BEGIN
     BYTE_READY => byte_ready
   );
 	
-  process(RESET_N, NEW_FRAME, byte_ready )
+  process(CLK, RESET_N, NEW_FRAME, byte_ready)
   begin
     if RESET_N = '0' then
       byte_count <= 0;
       R_HID_REPORT <= (others => '0');
     elsif NEW_FRAME = '0' then
       byte_count <= 0;
-    elsif byte_ready'event and byte_ready = '1' then
+    elsif CLK'event and CLK = '1' and byte_ready = '1' then
       R_HID_REPORT(byte_count*8+7 downto byte_count*8) <= keyb_data;
       byte_count <= byte_count + 1;
     end if;
