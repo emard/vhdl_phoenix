@@ -3,7 +3,7 @@
 <!--                                                         -->
 <!-- Copyright 1986-2016 Xilinx, Inc. All Rights Reserved.   -->
 
-<Project Version="7" Minor="14" Path="/home/guest/src/fpga/phoenix/vhdl_phoenix/esa11/phoenix_esa11.xpr">
+<Project Version="7" Minor="14" Path="/home/guest/src/fpga/phoenix/vhdl_phoenix/proj/xilinx/esa11/phoenix_esa11.xpr">
   <DefaultLaunch Dir="$PRUNDIR"/>
   <Configuration>
     <Option Name="Id" Val="d9ae0350734544abb1e2d9bc160aee96"/>
@@ -45,7 +45,142 @@
   <FileSets Version="1" Minor="31">
     <FileSet Name="sources_1" Type="DesignSrcs" RelSrcDir="$PSRCDIR/sources_1">
       <Filter Type="Srcs"/>
-      <File Path="$PPRDIR/top/phoenix_esa11.vhd">
+      <File Path="$PPRDIR/../../../rtl_T80/T80_ALU.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_T80/T80_MCode.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_T80/T80_Pack.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_T80/T80_Reg.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_T80/T80.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl/osd/char_rom.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_dar/gen_ram.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_dar/phoenix_effect1.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_dar/phoenix_effect2.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_dar/phoenix_effect3.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_dar/phoenix_music.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_dar/phoenix_video.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_T80/T8080se.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../tools/phoenix_unzip/roms/phoenix_prog.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../tools/phoenix_unzip/roms/prom_ic23.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../tools/phoenix_unzip/roms/prom_ic24.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../tools/phoenix_unzip/roms/prom_ic39.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../tools/phoenix_unzip/roms/prom_ic40.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../tools/phoenix_unzip/roms/prom_palette_ic40.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../tools/phoenix_unzip/roms/prom_palette_ic41.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_vga/phoenix_video_vga.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl/osd/osd.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_vga/vga.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi/tmds_encoder.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi-audio/encoder.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi-audio/hdmidelay.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi-audio/hdmidataencoder.v">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
+      <File Path="$PPRDIR/../../../rtl_vga/xilinx/xc7/ddr_out.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
@@ -55,183 +190,59 @@
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/gen_ram.vhd">
+      <File Path="$PPRDIR/../../../rtl_dar/io_ps2_keyboard.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/io_ps2_keyboard.vhd">
+      <File Path="$PPRDIR/../../../rtl_dar/kbd_joystick.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/kbd_joystick.vhd">
+      <File Path="$PPRDIR/../../../rtl_dar/dac.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/phoenix_effect1.vhd">
+      <File Path="$PPRDIR/../../../rtl_vga/phoenix.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/phoenix_effect2.vhd">
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi/vga2dvid.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/phoenix_effect3.vhd">
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi/ddr_dvid_out_se.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/phoenix_music.vhd">
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi-audio/av_hdmi.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/phoenix_video.vhd">
+      <File Path="$PPRDIR/../../../rtl_vga/hdmi-audio/serializer_generic.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_dar/dac.vhd">
+      <File Path="$PPRDIR/../../../rtl_vga/xilinx/xc7/hdmi_out_xc7.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_T80/T80_ALU.vhd">
+      <File Path="$PPRDIR/top/phoenix_esa11.vhd">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
-      <File Path="$PPRDIR/../rtl_T80/T80_MCode.vhd">
+      <File Path="$PPRDIR/../../../rtl_T80/T80s.vhd">
         <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_T80/T80_Pack.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_T80/T80_Reg.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_T80/T80.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_T80/T80s.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_T80/T8080se.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../tools/phoenix_unzip/roms/phoenix_prog.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../tools/phoenix_unzip/roms/prom_ic23.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../tools/phoenix_unzip/roms/prom_ic24.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../tools/phoenix_unzip/roms/prom_ic39.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../tools/phoenix_unzip/roms/prom_ic40.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../tools/phoenix_unzip/roms/prom_palette_ic40.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../tools/phoenix_unzip/roms/prom_palette_ic41.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/phoenix.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/phoenix_video_vga.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/vga.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi/vga2dvid.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi/tmds_encoder.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi/ddr_dvid_out_se.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi-audio/av_hdmi.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi-audio/encoder.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi-audio/hdmidelay.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi-audio/hdmidataencoder.v">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/hdmi-audio/serializer_generic.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/xilinx/xc7/hdmi_out_xc7.vhd">
-        <FileInfo>
-          <Attr Name="UsedIn" Val="synthesis"/>
-        </FileInfo>
-      </File>
-      <File Path="$PPRDIR/../rtl_vga/xilinx/xc7/ddr_out.vhd">
-        <FileInfo>
+          <Attr Name="AutoDisabled" Val="1"/>
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
@@ -335,9 +346,7 @@
     </Run>
     <Run Id="clk_d100_100_200_250_25MHz_synth_1" Type="Ft3:Synth" SrcSet="clk_d100_100_200_250_25MHz" Part="xc7a100tfgg484-2" ConstrsSet="clk_d100_100_200_250_25MHz" Description="Vivado Synthesis Defaults" Dir="$PRUNDIR/clk_d100_100_200_250_25MHz_synth_1" IncludeInArchive="true">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2016">
-          <Desc>Vivado Synthesis Defaults</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Synthesis Defaults" Flow="Vivado Synthesis 2016"/>
         <Step Id="synth_design"/>
       </Strategy>
       <GeneratedRun Dir="$PRUNDIR" File="gen_run.xml"/>
@@ -373,9 +382,7 @@
     </Run>
     <Run Id="clk_d100_100_200_250_25MHz_impl_1" Type="Ft2:EntireDesign" Part="xc7a100tfgg484-2" ConstrsSet="clk_d100_100_200_250_25MHz" Description="Default settings for Implementation." SynthRun="clk_d100_100_200_250_25MHz_synth_1" IncludeInArchive="false">
       <Strategy Version="1" Minor="2">
-        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2016">
-          <Desc>Default settings for Implementation.</Desc>
-        </StratHandle>
+        <StratHandle Name="Vivado Implementation Defaults" Flow="Vivado Implementation 2016"/>
         <Step Id="init_design"/>
         <Step Id="opt_design"/>
         <Step Id="power_opt_design"/>
