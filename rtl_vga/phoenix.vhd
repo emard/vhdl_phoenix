@@ -43,6 +43,8 @@ port(
  video_hs     : out std_logic;
  video_vs     : out std_logic;
 
+ sound_fire   : out std_logic; -- '1' when missile fires
+ sound_explode: out std_logic; -- '1' when ship explodes
  audio_select : in std_logic_vector(2 downto 0) := (others => '0');
  audio        : out std_logic_vector(11 downto 0)
 );
@@ -530,6 +532,9 @@ port map
   trigger2 => sound_b(7),
   snd      => snd3
 );
+
+sound_fire <= sound_b(6); -- '1' when fire sound
+sound_explode <= sound_b(7); -- '1' when explode sound
 
 music: entity work.phoenix_music
 port map
