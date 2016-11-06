@@ -121,6 +121,7 @@ architecture struct of phoenix_esa11 is
 
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
+  signal S_sound_fire, S_sound_explode: std_logic;
   signal S_db9_joy0, R_db9_joy0, S_db9_joy1, R_db9_joy1: std_logic_vector(5 downto 0);
   signal S_db9_btn, S_db9_sw: std_logic_vector(1 downto 0);
   
@@ -252,6 +253,8 @@ begin
     vga_vsync    => S_vga_vsync,
     vga_blank    => S_vga_blank,
     -- audio_select => audio_select,
+    sound_fire   => S_sound_fire,
+    sound_explode => S_sound_explode,
     audio        => S_audio
   );
   M_7SEG_A <= kbd_scancode(0);
@@ -262,6 +265,8 @@ begin
   M_7SEG_F <= kbd_scancode(5);
   M_7SEG_G <= kbd_scancode(6);
   M_7SEG_DP <= kbd_scancode(7);
+  --M_7SEG_G <= S_sound_explode;
+  --M_7SEG_DP <= S_sound_fire;
   M_7SEG_DIGIT <= "0001";
   
   -- indication with onboard LEDs
