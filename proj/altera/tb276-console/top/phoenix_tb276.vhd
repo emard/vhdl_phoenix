@@ -26,6 +26,7 @@ port
   led_left, led_right, led_coin, led_barrier, led_fire: out std_logic;
   hdmi_mute, spkr_mute: in std_logic;
   spkr_pwm, jack_left_pwm, jack_right_pwm: out std_logic;
+  vibra_pwm: out std_logic;
   hdmi_d: out std_logic_vector(2 downto 0);
   hdmi_clk: out std_logic;
   led: out std_logic_vector(7 downto 0); -- onboard leds
@@ -38,6 +39,7 @@ architecture struct of phoenix_tb276 is
 
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
+  signal S_sound_fire, S_sound_explode: std_logic;
  
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
   signal S_hdmi_pd0, S_hdmi_pd1, S_hdmi_pd2: std_logic_vector(9 downto 0);
@@ -89,6 +91,8 @@ begin
     btn_right    => not btn_right,
     btn_barrier  => (not btn_barrier) or (not key_right),
     btn_fire     => (not btn_fire) or (not key_left),
+    sound_fire   => S_sound_fire,
+    sound_explode => S_sound_explode,
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
@@ -235,5 +239,7 @@ begin
   jack_left_pwm <= S_audio_pwm;
   jack_right_pwm <= S_audio_pwm;
   spkr_pwm <= S_audio_pwm and not spkr_mute;
+  
+  vibra_pwm <= S_sound_fire or S_sound_explode;
 
 end struct;
