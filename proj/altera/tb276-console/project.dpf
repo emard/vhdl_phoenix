@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<pin_planner>
+	<pin_info>
+		<pin name="hdmi_d[0]" source="Assignments" diff_pair_node="hdmi_d(n)[0]" >
+		</pin>
+		<pin name="hdmi_d(n)[0]" source="Assignments" diff_pair_node="hdmi_d[0]" >
+		</pin>
+		<pin name="hdmi_d[1]" source="Assignments" diff_pair_node="hdmi_d(n)[1]" >
+		</pin>
+		<pin name="hdmi_d(n)[1]" source="Assignments" diff_pair_node="hdmi_d[1]" >
+		</pin>
+		<pin name="hdmi_d[2]" source="Assignments" diff_pair_node="hdmi_d(n)[2]" >
+		</pin>
+		<pin name="hdmi_d(n)[2]" source="Assignments" diff_pair_node="hdmi_d[2]" >
+		</pin>
+	</pin_info>
+	<buses>
+	</buses>
+	<group_file_association>
+	</group_file_association>
+	<pin_planner_file_specifies>
+	</pin_planner_file_specifies>
+</pin_planner>
