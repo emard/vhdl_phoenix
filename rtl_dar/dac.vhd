@@ -31,17 +31,18 @@ entity dac is
 end dac;
 
 architecture rtl of dac is
-	signal sig_in : unsigned(C_bits+2 downto 0);
-
+	signal sig_in: unsigned(C_bits downto 0);
 begin
-	seq: process (clk_i, res_n_i)
+	seq: process(clk_i, res_n_i)
 	begin
 		if res_n_i = '0' then
-			sig_in <= to_unsigned(2**(C_bits+1), sig_in'length);
+			sig_in <= to_unsigned(2**C_bits, sig_in'length);
 			dac_o  <= '0';
 		elsif rising_edge(clk_i) then
-			sig_in <= sig_in + unsigned(sig_in(C_bits+2) & sig_in(C_bits+2) & dac_i);
-			dac_o  <= sig_in(C_bits+2);
+		        -- not dac_i(C_bits-1) effectively adds 0x8..0 to dac_i
+			--sig_in <= sig_in + unsigned(sig_in(C_bits) & (not dac_i(C_bits-1)) & dac_i(C_bits-2 downto 0));
+			sig_in <= sig_in + unsigned(sig_in(C_bits) & dac_i);
+			dac_o  <= sig_in(C_bits);
 		end if;
 	end process seq;
 end rtl;
