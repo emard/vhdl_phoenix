@@ -26,7 +26,7 @@ port
   led_left, led_right, led_coin, led_barrier, led_fire: out std_logic;
   hdmi_mute, spkr_mute: in std_logic;
   spkr_pwm, jack_left_pwm, jack_right_pwm: out std_logic;
-  vibra_pwm: out std_logic;
+  vibra_left_pwm, vibra_right_pwm: out std_logic;
   hdmi_d: out std_logic_vector(2 downto 0);
   hdmi_clk: out std_logic;
   led: out std_logic_vector(7 downto 0); -- onboard leds
@@ -240,6 +240,7 @@ begin
   jack_right_pwm <= S_audio_pwm;
   spkr_pwm <= S_audio_pwm and not spkr_mute;
   
-  vibra_pwm <= S_sound_fire or S_sound_explode;
+  vibra_left_pwm <= S_sound_fire;
+  vibra_right_pwm <= S_sound_explode;
 
 end struct;

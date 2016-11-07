@@ -54,12 +54,12 @@ set_location_assignment PIN_51 -to key_extra
 #set_location_assignment PIN_58 -to gpio[21]
 #set_location_assignment PIN_64 -to gpio[22]
 #set_location_assignment PIN_60 -to gpio[23]
-#set_location_assignment PIN_66 -to gpio[24]
+set_location_assignment PIN_66 -to vibra_left_pwm
 #set_location_assignment PIN_65 -to gpio[25]
 set_location_assignment PIN_68 -to hdmi_mute
 set_location_assignment PIN_67 -to spkr_mute
 set_location_assignment PIN_70 -to spkr_pwm
-set_location_assignment PIN_69 -to vibra_pwm
+set_location_assignment PIN_69 -to vibra_right_pwm
 set_location_assignment PIN_72 -to jack_left_pwm
 set_location_assignment PIN_71 -to jack_right_pwm
 
