@@ -104,7 +104,11 @@ architecture struct of phoenix_esa11 is
 
   signal coin         : std_logic;
   signal player_start : std_logic_vector(1 downto 0);
-  signal button_left, button_right, button_protect, button_fire: std_logic;
+  signal button_left, button_right, button_barrier, button_fire: std_logic;
+
+  signal S_led_coin         : std_logic;
+  signal S_led_player_start : std_logic_vector(1 downto 0);
+  signal S_led_button_left, S_led_button_right, S_led_button_barrier, S_led_button_fire: std_logic;
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_r8, S_vga_g8, S_vga_b8: std_logic_vector(7 downto 0);
@@ -210,7 +214,7 @@ begin
 --  player_start(1) <= (not M_BTN(1)) or S_db9_joy1(3) or (not JoyPCFRLDU(6)); -- F2 : Start 2 Players
 --  button_left     <= (not M_BTN(0)) or S_db9_joy1(1) or (not JoyPCFRLDU(2)); -- LEFT arrow  : Left
 --  button_right    <= (not M_BTN(4)) or S_db9_joy1(0) or (not JoyPCFRLDU(3)); -- RIGHT arrow : Right
---  button_protect  <= (not M_BTN(1)) or S_db9_joy1(5) or (not JoyPCFRLDU(0)); -- UP arrow : Protection
+--  button_barrier  <= (not M_BTN(1)) or S_db9_joy1(5) or (not JoyPCFRLDU(0)); -- UP arrow : Protection
 --  button_fire     <= (not M_BTN(3)) or S_db9_joy1(4) or (not JoyPCFRLDU(4)); -- SPACE : Fire
 
   -- register all controls to off-load routing
@@ -222,7 +226,7 @@ begin
       player_start(1) <= (not M_BTN(2));
       button_left     <= (not M_BTN(0)) or R_db9_joy1(1);
       button_right    <= (not M_BTN(4)) or R_db9_joy1(0);
-      button_protect  <= (not M_BTN(2)) or R_db9_joy1(4);
+      button_barrier  <= (not M_BTN(2)) or R_db9_joy1(4);
       button_fire     <= (not M_BTN(3)) or R_db9_joy1(5);
     end if;
   end process;
@@ -244,7 +248,7 @@ begin
     btn_player_start(1) => player_start(1),
     btn_left     => button_left,
     btn_right    => button_right,
-    btn_barrier  => button_protect,
+    btn_barrier  => button_barrier,
     btn_fire     => button_fire,
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
@@ -265,6 +269,9 @@ begin
   M_7SEG_F <= kbd_scancode(5);
   M_7SEG_G <= kbd_scancode(6);
   M_7SEG_DP <= kbd_scancode(7);
+
+  --M_7SEG_B <= S_led_button_left;
+  --M_7SEG_C <= S_led_button_right;
   --M_7SEG_G <= S_sound_explode;
   --M_7SEG_DP <= S_sound_fire;
   M_7SEG_DIGIT <= "0001";
@@ -272,7 +279,7 @@ begin
   -- indication with onboard LEDs
   LED(0) <= coin or player_start(0) or player_start(1);
   LED(1) <= button_left or button_right;
-  LED(2) <= button_fire or button_protect;
+  LED(2) <= button_fire or button_barrier;
 
   -- indication with USER02 LEDs
   M_LED(0) <= coin;
@@ -281,7 +288,7 @@ begin
   M_LED(3) <= button_left;
   M_LED(4) <= button_right;
   M_LED(5) <= button_fire;
-  M_LED(6) <= button_protect;
+  M_LED(6) <= button_barrier;
 --  M_LED(5) <= S_vga_r(1); -- when game works, changing color on
 --  M_LED(6) <= S_vga_g(1); -- large area of the screen should
   M_LED(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
@@ -445,5 +452,27 @@ begin
 
   audio_l <= S_audio_pwm;
   audio_r <= S_audio_pwm;
+  
+  button_effect: entity work.illuminate_buttons
+  generic map
+  (
+    C_speed => 10
+  )
+  port map
+  (
+    clk => clk_pixel,
+    btn_coin     => coin,
+    led_coin     => S_led_coin,
+    btn_player_start => player_start,
+    led_player_start => open,
+    btn_left     => button_left,
+    led_left     => S_led_button_left,
+    btn_right    => button_right,
+    led_right    => S_led_button_right,
+    btn_barrier  => button_barrier,
+    led_barrier  => S_led_button_barrier,
+    btn_fire     => button_fire,
+    led_fire     => S_led_button_fire
+  );
 
 end struct;
