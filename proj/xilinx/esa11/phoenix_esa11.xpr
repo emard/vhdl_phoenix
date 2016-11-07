@@ -185,6 +185,11 @@
           <Attr Name="UsedIn" Val="synthesis"/>
         </FileInfo>
       </File>
+      <File Path="$PPRDIR/../../../rtl/button_blinks/illuminate_buttons.vhd">
+        <FileInfo>
+          <Attr Name="UsedIn" Val="synthesis"/>
+        </FileInfo>
+      </File>
       <File Path="$PPRDIR/joystick/user_io.v">
         <FileInfo>
           <Attr Name="UsedIn" Val="synthesis"/>
