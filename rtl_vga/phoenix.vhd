@@ -45,6 +45,8 @@ port(
 
  sound_fire   : out std_logic; -- '1' when missile fires
  sound_explode: out std_logic; -- '1' when ship explodes
+ sound_burn   : out std_logic; -- bird burns
+ sounda       : out std_logic_vector(7 downto 0);
  audio_select : in std_logic_vector(2 downto 0) := (others => '0');
  audio        : out std_logic_vector(11 downto 0)
 );
@@ -509,6 +511,9 @@ port map
   divider  => sound_a(3 downto 0),
   snd      => snd1
 );
+sounda <= sound_a;
+-- sound_a(4) -- hit of the eagle's wing
+sound_burn <= sound_b(4);
 
 effect2 : entity work.phoenix_effect2
 port map
