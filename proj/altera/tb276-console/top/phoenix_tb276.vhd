@@ -37,6 +37,10 @@ end;
 architecture struct of phoenix_tb276 is
   signal clk_pixel, clk_pixel_shift: std_logic;
 
+  signal S_led_coin         : std_logic;
+  signal S_led_player_start : std_logic_vector(1 downto 0);
+  signal S_led_button_left, S_led_button_right, S_led_button_barrier, S_led_button_fire: std_logic;
+
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
   signal S_sound_fire, S_sound_explode: std_logic;
@@ -73,9 +77,38 @@ begin
 
   reset <= not clock_stable;
 
+  button_effect: entity work.illuminate_buttons
+  generic map
+  (
+    C_autofire => true
+  )
+  port map
+  (
+    clk => clk_pixel,
+    btn_coin     => not btn_coin,
+    led_coin     => S_led_coin,
+    btn_player_start => "00",
+    led_player_start => open,
+    btn_left     => not btn_left,
+    led_left     => S_led_button_left,
+    btn_right    => not btn_right,
+    led_right    => S_led_button_right,
+    btn_barrier  => not btn_barrier,
+    led_barrier  => S_led_button_barrier,
+    btn_fire     => not btn_fire,
+    led_fire     => S_led_button_fire
+  );
+
+  led_left <= S_led_button_left;
+  led_right <= S_led_button_right;
+  led_coin <= S_led_coin;
+  led_barrier <= S_led_button_barrier;
+  led_fire <= S_led_button_fire;
+
   phoenix : entity work.phoenix
   generic map
   (
+    C_autofire => false,
     C_audio => true,
     C_vga => true
   )
@@ -90,7 +123,7 @@ begin
     btn_left     => not btn_left,
     btn_right    => not btn_right,
     btn_barrier  => (not btn_barrier) or (not key_right),
-    btn_fire     => (not btn_fire) or (not key_left),
+    btn_fire     => S_led_button_fire or (not key_left),
     sound_fire   => S_sound_fire,
     sound_explode => S_sound_explode,
     vga_r        => S_vga_r,
@@ -101,13 +134,6 @@ begin
     vga_blank    => S_vga_blank,
     audio        => S_audio
   );
-
-  -- virtual GND's for controls
-  led_left <= not btn_left;
-  led_right <= not btn_right;
-  led_coin <= not btn_coin;
-  led_barrier <= not btn_barrier;
-  led_fire <= not btn_fire;
 
   -- some debugging with LEDs
   led(0) <= not btn_left;

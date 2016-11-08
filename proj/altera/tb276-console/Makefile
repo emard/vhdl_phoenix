@@ -74,3 +74,5 @@ clocks/clk_25M_125M_25M.vhd \
 ../../../rtl_vga/hdmi-audio/serializer_generic.vhd \
 ../../../rtl/osd/osd.vhd \
 ../../../rtl/osd/char_rom.vhd \
+../../../rtl/button_blinks/illuminate_buttons.vhd \
+
