@@ -109,6 +109,7 @@ architecture struct of phoenix_esa11 is
   signal S_led_coin         : std_logic;
   signal S_led_player_start : std_logic_vector(1 downto 0);
   signal S_led_button_left, S_led_button_right, S_led_button_barrier, S_led_button_fire: std_logic;
+  signal S_sound_a: std_logic_vector(7 downto 0);
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_r8, S_vga_g8, S_vga_b8: std_logic_vector(7 downto 0);
@@ -126,6 +127,7 @@ architecture struct of phoenix_esa11 is
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
   signal S_sound_fire, S_sound_explode: std_logic;
+  signal S_sound_burn: std_logic;
   signal S_db9_joy0, R_db9_joy0, S_db9_joy1, R_db9_joy1: std_logic_vector(5 downto 0);
   signal S_db9_btn, S_db9_sw: std_logic_vector(1 downto 0);
   
@@ -234,7 +236,7 @@ begin
   phoenix: entity work.phoenix
   generic map
   (
-    C_autofire => true,
+    C_autofire => false,
     C_audio => true,
     C_vga => true
   )
@@ -249,7 +251,7 @@ begin
     btn_left     => button_left,
     btn_right    => button_right,
     btn_barrier  => button_barrier,
-    btn_fire     => button_fire,
+    btn_fire     => S_led_button_fire, -- autofire
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
@@ -259,6 +261,8 @@ begin
     -- audio_select => audio_select,
     sound_fire   => S_sound_fire,
     sound_explode => S_sound_explode,
+    sound_burn   => S_sound_burn,
+    sounda       => S_sound_a,
     audio        => S_audio
   );
   M_7SEG_A <= kbd_scancode(0);
@@ -269,6 +273,15 @@ begin
   M_7SEG_F <= kbd_scancode(5);
   M_7SEG_G <= kbd_scancode(6);
   M_7SEG_DP <= kbd_scancode(7);
+
+  -- debug to find out what sound outputs are
+  --M_7SEG_A <= S_sound_a(0);
+  --M_7SEG_B <= S_sound_a(1);
+  --M_7SEG_C <= S_sound_a(2);
+  --M_7SEG_D <= S_sound_a(3);
+  --M_7SEG_E <= S_sound_a(4);
+  --M_7SEG_F <= S_sound_a(5);
+  --M_7SEG_DP <= S_sound_burn;
 
   --M_7SEG_B <= S_led_button_left;
   --M_7SEG_C <= S_led_button_right;
@@ -285,10 +298,10 @@ begin
   M_LED(0) <= coin;
   M_LED(1) <= player_start(0);
   M_LED(2) <= player_start(1);
-  M_LED(3) <= button_left;
-  M_LED(4) <= button_right;
-  M_LED(5) <= button_fire;
-  M_LED(6) <= button_barrier;
+  M_LED(3) <= S_led_button_left;
+  M_LED(4) <= S_led_button_right;
+  M_LED(5) <= button_barrier;
+  M_LED(6) <= S_led_button_fire;
 --  M_LED(5) <= S_vga_r(1); -- when game works, changing color on
 --  M_LED(6) <= S_vga_g(1); -- large area of the screen should
   M_LED(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
@@ -456,7 +469,7 @@ begin
   button_effect: entity work.illuminate_buttons
   generic map
   (
-    C_speed => 10
+    C_autofire => true
   )
   port map
   (
