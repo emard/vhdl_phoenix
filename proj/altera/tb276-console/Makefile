@@ -75,4 +75,5 @@ clocks/clk_25M_125M_25M.vhd \
 ../../../rtl/osd/osd.vhd \
 ../../../rtl/osd/char_rom.vhd \
 ../../../rtl/button_blinks/illuminate_buttons.vhd \
+../../../rtl/vibra/vibra.vhd \
 

@@ -43,7 +43,7 @@ architecture struct of phoenix_tb276 is
 
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
-  signal S_sound_fire, S_sound_explode: std_logic;
+  signal S_sound_fire, S_sound_explode, S_sound_burn, S_sound_fireball: std_logic;
  
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
   signal S_hdmi_pd0, S_hdmi_pd1, S_hdmi_pd2: std_logic_vector(9 downto 0);
@@ -126,6 +126,7 @@ begin
     btn_fire     => S_led_button_fire or (not key_left),
     sound_fire   => S_sound_fire,
     sound_explode => S_sound_explode,
+    sound_burn   => S_sound_burn,
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
     vga_b        => S_vga_b,
@@ -265,8 +266,21 @@ begin
   jack_left_pwm <= S_audio_pwm;
   jack_right_pwm <= S_audio_pwm;
   spkr_pwm <= S_audio_pwm and not spkr_mute;
-  
-  vibra_left_pwm <= S_sound_fire;
-  vibra_right_pwm <= S_sound_explode;
 
+  vibra: entity work.vibra
+  --generic map
+  --(
+  --  C_bits => 8
+  --)
+  port map
+  (
+    clk => clk_pixel,
+    i_fire => S_sound_fire,
+    i_burn => S_sound_burn,
+    i_explode => S_sound_explode,
+    i_fireball => S_sound_fireball,
+    o_left => vibra_left_pwm,
+    o_right => vibra_right_pwm
+  );
+  
 end struct;
