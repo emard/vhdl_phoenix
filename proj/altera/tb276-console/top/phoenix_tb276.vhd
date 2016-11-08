@@ -137,14 +137,14 @@ begin
   );
 
   -- some debugging with LEDs
-  led(0) <= not btn_left;
-  led(1) <= not btn_right;
-  led(2) <= not btn_coin;
-  led(3) <= not btn_barrier;
-  led(4) <= not btn_fire;
-  led(5) <= S_vga_r(1); -- when game works, changing color on
+  led(7) <= S_vga_r(1); -- when game works, changing color on
   led(6) <= S_vga_g(1); -- large area of the screen should
-  led(7) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
+  led(5) <= S_vga_b(1); -- also be "visible" on RGB indicator LEDs
+  led(4) <= not btn_left;
+  led(3) <= not btn_right;
+  led(2) <= not btn_coin;
+  led(1) <= not btn_barrier;
+  led(0) <= not btn_fire;
   
   G_hdmi_video_only: if not C_hdmi_audio generate
   vga2dvi_converter: entity work.vga2dvid
@@ -210,7 +210,7 @@ begin
       I_BLANK        => S_vga_blank,
       I_HSYNC        => not S_vga_hsync,
       I_VSYNC        => not S_vga_vsync,
-      I_AUDIO_ENABLE => hdmi_mute,
+      I_AUDIO_ENABLE => not hdmi_mute,
       I_AUDIO_PCM_L  => S_audio & "0000",
       I_AUDIO_PCM_R  => S_audio & "0000",
       O_TMDS_PD0     => S_HDMI_PD0,
@@ -265,7 +265,7 @@ begin
 
   jack_left_pwm <= S_audio_pwm;
   jack_right_pwm <= S_audio_pwm;
-  spkr_pwm <= S_audio_pwm and not spkr_mute;
+  spkr_pwm <= S_audio_pwm and spkr_mute;
 
   vibra: entity work.vibra
   --generic map
