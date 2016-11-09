@@ -22,7 +22,7 @@ generic (
 port(
  clk_pixel    : in std_logic; -- 11 MHz for TV, 25 MHz for VGA
  reset        : in std_logic;
- 
+
  osd_hex      : in std_logic_vector(63 downto 0) := (others => '0');
 
  dip_switch   : in std_logic_vector(7 downto 0);
@@ -46,7 +46,8 @@ port(
  sound_fire   : out std_logic; -- '1' when missile fires
  sound_explode: out std_logic; -- '1' when ship explodes
  sound_burn   : out std_logic; -- bird burns
- sounda       : out std_logic_vector(7 downto 0);
+ sound_fireball: out std_logic; -- bird explodes in 2 fireballs
+ sound_ab     : out std_logic_vector(15 downto 0);
  audio_select : in std_logic_vector(2 downto 0) := (others => '0');
  audio        : out std_logic_vector(11 downto 0)
 );
@@ -81,7 +82,7 @@ architecture struct of phoenix is
  signal cpu_wr_n : std_logic;
  signal prog_do  : std_logic_vector( 7 downto 0);
  signal S_prog_rom_addr : std_logic_vector(13 downto 0);
- 
+
  signal frgnd_horz_cnt : std_logic_vector(7 downto 0) := (others =>'0');
  signal bkgnd_horz_cnt : std_logic_vector(7 downto 0) := (others =>'0');
  signal vert_cnt       : std_logic_vector(7 downto 0) := (others =>'0');
@@ -92,14 +93,14 @@ architecture struct of phoenix is
  signal bkgnd_ram_do : std_logic_vector( 7 downto 0) := (others =>'0');
  signal frgnd_ram_we : std_logic := '0';
  signal bkgnd_ram_we : std_logic := '0';
- 
+
  signal frgnd_graph_adr : std_logic_vector(10 downto 0) := (others =>'0');
  signal bkgnd_graph_adr : std_logic_vector(10 downto 0) := (others =>'0');
  signal palette_adr     : std_logic_vector( 7 downto 0) := (others =>'0'); 
 
  signal frgnd_clk : std_logic;
  signal bkgnd_clk : std_logic;
- 
+
  signal frgnd_tile_id : std_logic_vector(7 downto 0) := (others =>'0');
  signal bkgnd_tile_id : std_logic_vector(7 downto 0) := (others =>'0');
 
@@ -112,25 +113,25 @@ architecture struct of phoenix is
  signal frgnd_bit1_graph_r : std_logic_vector(7 downto 0) := (others =>'0');
  signal bkgnd_bit0_graph_r : std_logic_vector(7 downto 0) := (others =>'0');
  signal bkgnd_bit1_graph_r : std_logic_vector(7 downto 0) := (others =>'0');
- 
+
  signal fr_bit0  : std_logic;
  signal fr_bit1  : std_logic;
  signal bk_bit0  : std_logic;
  signal bk_bit1  : std_logic;
  signal fr_lin   : std_logic_vector(2 downto 0);
  signal bk_lin   : std_logic_vector(2 downto 0);
- 
+
  signal color_set : std_logic;
  signal color_id  : std_logic_vector(5 downto 0);
  signal rgb_0     : std_logic_vector(7 downto 0);
  signal rgb_1     : std_logic_vector(7 downto 0);
-  
+
  signal player2      : std_logic := '0';
  signal pl2_cocktail : std_logic := '0';
  signal bkgnd_offset : std_logic_vector(7 downto 0) := (others =>'0');
  signal sound_a      : std_logic_vector(7 downto 0) := (others =>'0');
  signal sound_b      : std_logic_vector(7 downto 0) := (others =>'0');
- 
+
  signal clk10 : std_logic;
  signal snd1  : std_logic_vector( 7 downto 0) := (others =>'0');
  signal snd2  : std_logic_vector( 1 downto 0) := (others =>'0');
@@ -511,9 +512,6 @@ port map
   divider  => sound_a(3 downto 0),
   snd      => snd1
 );
-sounda <= sound_a;
--- sound_a(4) -- hit of the eagle's wing
-sound_burn <= sound_b(4);
 
 effect2 : entity work.phoenix_effect2
 port map
@@ -538,8 +536,11 @@ port map
   snd      => snd3
 );
 
+sound_burn <= sound_b(4);
 sound_fire <= sound_b(6); -- '1' when fire sound
 sound_explode <= sound_b(7); -- '1' when explode sound
+sound_fireball <= sound_a(1) and not sound_a(0);
+sound_ab <= sound_b & sound_a;
 
 music: entity work.phoenix_music
 port map
