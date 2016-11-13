@@ -19,7 +19,7 @@ SERIAL_FLASH_LOADER_DEVICE = EP4CE22
 OPENOCD_BOARD=reverse-u16.ocd
 # OPENOCD_INTERFACE=interface/altera-usb-blaster.cfg
 # OPENOCD_INTERFACE=ftdi-fpu1.ocd
-OPENOCD_INTERFACE=remote.ocd
+OPENOCD_INTERFACE=../include/remote.ocd
 
 ###################################################################
 #
