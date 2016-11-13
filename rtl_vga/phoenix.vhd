@@ -539,7 +539,7 @@ port map
 sound_burn <= sound_b(4);
 sound_fire <= sound_b(6); -- '1' when fire sound
 sound_explode <= sound_b(7); -- '1' when explode sound
-sound_fireball <= sound_a(1) and not sound_a(0);
+sound_fireball <= sound_a(1) and not sound_a(0); -- ambiguity: mothership descend also triggers this
 sound_ab <= sound_b & sound_a;
 
 music: entity work.phoenix_music
