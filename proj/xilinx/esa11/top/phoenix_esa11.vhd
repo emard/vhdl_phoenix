@@ -109,7 +109,7 @@ architecture struct of phoenix_esa11 is
   signal S_led_coin         : std_logic;
   signal S_led_player_start : std_logic_vector(1 downto 0);
   signal S_led_button_left, S_led_button_right, S_led_button_barrier, S_led_button_fire: std_logic;
-  signal S_sound_a: std_logic_vector(7 downto 0);
+  signal S_sound_ab: std_logic_vector(15 downto 0);
 
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_r8, S_vga_g8, S_vga_b8: std_logic_vector(7 downto 0);
@@ -126,7 +126,7 @@ architecture struct of phoenix_esa11 is
 
   signal S_audio: std_logic_vector(11 downto 0);
   signal S_audio_pwm: std_logic;
-  signal S_sound_fire, S_sound_explode: std_logic;
+  signal S_sound_fire, S_sound_explode, S_sound_fireball: std_logic;
   signal S_sound_burn: std_logic;
   signal S_db9_joy0, R_db9_joy0, S_db9_joy1, R_db9_joy1: std_logic_vector(5 downto 0);
   signal S_db9_btn, S_db9_sw: std_logic_vector(1 downto 0);
@@ -238,6 +238,7 @@ begin
   (
     C_autofire => false,
     C_audio => true,
+    C_osd => true,
     C_vga => true
   )
   port map
@@ -258,21 +259,39 @@ begin
     vga_hsync    => S_vga_hsync,
     vga_vsync    => S_vga_vsync,
     vga_blank    => S_vga_blank,
-    -- audio_select => audio_select,
-    sound_fire   => S_sound_fire,
-    sound_explode => S_sound_explode,
-    sound_burn   => S_sound_burn,
-    sounda       => S_sound_a,
-    audio        => S_audio
+    osd_hex(0)   => S_sound_ab(0),  osd_hex( 3 downto 1 ) => (others => '0'),
+    osd_hex(4)   => S_sound_ab(1),  osd_hex( 7 downto 5 ) => (others => '0'),
+    osd_hex(8)   => S_sound_ab(2),  osd_hex(11 downto 9 ) => (others => '0'),
+    osd_hex(12)  => S_sound_ab(3),  osd_hex(15 downto 13) => (others => '0'),
+    osd_hex(16)  => S_sound_ab(4),  osd_hex(19 downto 17) => (others => '0'),
+    osd_hex(20)  => S_sound_ab(5),  osd_hex(23 downto 21) => (others => '0'),
+    osd_hex(24)  => S_sound_ab(6),  osd_hex(27 downto 25) => (others => '0'),
+    osd_hex(28)  => S_sound_ab(7),  osd_hex(31 downto 29) => (others => '0'),
+    osd_hex(32)  => S_sound_ab(8),  osd_hex(35 downto 33) => (others => '0'),
+    osd_hex(36)  => S_sound_ab(9),  osd_hex(39 downto 37) => (others => '0'),
+    osd_hex(40)  => S_sound_ab(10), osd_hex(43 downto 41) => (others => '0'),
+    osd_hex(44)  => S_sound_ab(11), osd_hex(47 downto 45) => (others => '0'),
+    --osd_hex(47 downto 0) => (others => '0'),
+    osd_hex(48)  => S_sound_fire,     osd_hex(51 downto 49) => (others => '0'),
+    osd_hex(52)  => S_sound_explode,  osd_hex(55 downto 53) => (others => '0'),
+    osd_hex(56)  => S_sound_burn,     osd_hex(59 downto 57) => (others => '0'),
+    osd_hex(60)  => S_sound_fireball, osd_hex(63 downto 61) => (others => '0'),
+    sound_fire     => S_sound_fire,
+    sound_explode  => S_sound_explode,
+    sound_burn     => S_sound_burn,
+    sound_fireball => S_sound_fireball,
+    sound_ab       => S_sound_ab,
+    audio          => S_audio
   );
-  M_7SEG_A <= kbd_scancode(0);
-  M_7SEG_B <= kbd_scancode(1);
-  M_7SEG_C <= kbd_scancode(2);
-  M_7SEG_D <= kbd_scancode(3);
-  M_7SEG_E <= kbd_scancode(4);
-  M_7SEG_F <= kbd_scancode(5);
-  M_7SEG_G <= kbd_scancode(6);
+  M_7SEG_A  <= kbd_scancode(0);
+  M_7SEG_B  <= kbd_scancode(1);
+  M_7SEG_C  <= kbd_scancode(2);
+  M_7SEG_D  <= kbd_scancode(3);
+  M_7SEG_E  <= kbd_scancode(4);
+  M_7SEG_F  <= kbd_scancode(5);
+  M_7SEG_G  <= kbd_scancode(6);
   M_7SEG_DP <= kbd_scancode(7);
+  M_7SEG_DIGIT <= "0001";
 
   -- debug to find out what sound outputs are
   --M_7SEG_A <= S_sound_a(0);
@@ -287,7 +306,6 @@ begin
   --M_7SEG_C <= S_led_button_right;
   --M_7SEG_G <= S_sound_explode;
   --M_7SEG_DP <= S_sound_fire;
-  M_7SEG_DIGIT <= "0001";
   
   -- indication with onboard LEDs
   LED(0) <= coin or player_start(0) or player_start(1);
