@@ -96,5 +96,6 @@ begin
   end generate;
   
   led_barrier <= btn_barrier;
+  led_coin <= btn_coin;
 
 end struct;
