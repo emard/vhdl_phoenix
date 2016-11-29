@@ -43,7 +43,7 @@ set_location_assignment PIN_39 -to led_barrier
 set_location_assignment PIN_49 -to btn_fire
 set_location_assignment PIN_46 -to led_fire
 set_location_assignment PIN_51 -to key_extra
-#set_location_assignment PIN_50 -to gpio[15]
+set_location_assignment PIN_50 -to led_extra
 
 # J2
 #set_location_assignment PIN_53 -to gpio[16]
