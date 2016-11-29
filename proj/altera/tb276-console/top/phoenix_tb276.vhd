@@ -23,7 +23,7 @@ port
 (
   clk_25m: in std_logic;
   btn_left, btn_right, btn_coin, btn_barrier, btn_fire: in std_logic; -- inverted logic
-  led_left, led_right, led_coin, led_barrier, led_fire: out std_logic;
+  led_left, led_right, led_coin, led_barrier, led_fire, led_extra, led_up: out std_logic;
   hdmi_mute, spkr_mute: in std_logic;
   spkr_pwm, jack_left_pwm, jack_right_pwm: out std_logic;
   vibra_left_pwm, vibra_right_pwm: out std_logic;
@@ -104,6 +104,8 @@ begin
   led_coin <= S_led_coin;
   led_barrier <= S_led_button_barrier;
   led_fire <= S_led_button_fire;
+  led_up <= S_led_button_fire;
+  led_extra <= not btn_fire;
 
   phoenix : entity work.phoenix
   generic map
