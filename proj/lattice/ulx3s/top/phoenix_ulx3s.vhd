@@ -105,11 +105,11 @@ architecture struct of phoenix_ulx3s is
   signal clk_pixel, clk_pixel_shift, clkn_pixel_shift: std_logic;
   signal clk_stable: std_logic := '1';
 
+  signal S_audio: std_logic_vector(23 downto 0) := (others => '0');
+  signal S_spdif_out: std_logic;
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
-  signal S_audio: std_logic_vector(11 downto 0);
-  
   signal ddr_d: std_logic_vector(2 downto 0);
   signal ddr_clk: std_logic;
 
@@ -227,11 +227,24 @@ begin
     vga_hsync    => S_vga_hsync,
     vga_vsync    => S_vga_vsync,
     vga_blank    => S_vga_blank,
-    audio        => S_audio
+    audio        => S_audio(23 downto 12)
   );
   
-  audio_l(3 downto 0) <= S_audio(11 downto 8);
-  audio_r(3 downto 0) <= S_audio(11 downto 8);
+  G_spdif_out: entity work.spdif_tx
+  generic map
+  (
+    C_clk_freq => 25000000,  -- Hz
+    C_sample_freq => 48000   -- Hz
+  )
+  port map
+  (
+    clk => clk_pixel,
+    data_in => S_audio,
+    spdif_out => S_spdif_out
+  );
+  audio_l(3 downto 0) <= S_audio(23 downto 20);
+  audio_r(3 downto 0) <= S_audio(23 downto 20);
+  audio_v(1 downto 0) <= (others => S_spdif_out);
 
   -- some debugging with LEDs
   led(0) <= R_blinky(R_blinky'high);
@@ -292,5 +305,8 @@ begin
   end generate;
   gpdi_diff_clock: OLVDS
   port map(A => ddr_clk, Z => gpdi_clkp, ZN => gpdi_clkn);
+  
+  
+
 
 end struct;
