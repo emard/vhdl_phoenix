@@ -230,8 +230,8 @@ begin
     audio        => S_audio
   );
   
-  audio_l(1 downto 0) <= S_audio(11 downto 10);
-  audio_r(1 downto 0) <= S_audio(11 downto 10);
+  audio_l(3 downto 0) <= S_audio(11 downto 8);
+  audio_r(3 downto 0) <= S_audio(11 downto 8);
 
   -- some debugging with LEDs
   led(0) <= R_blinky(R_blinky'high);
