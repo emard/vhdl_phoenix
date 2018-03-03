@@ -16,7 +16,7 @@ xc3sprog_interface = ftdi
 include ../include/xilinx.mk
 
 vfiles = \
-../../../rtl_vga/hdmi-audio/hdmidataencoder.v \
+../../../rtl_emard/vga/hdmi-audio/hdmidataencoder.v \
 
 vhdfiles = \
 top/phoenix_scarab.vhd \
@@ -44,17 +44,17 @@ clocks/clk_50_50_250_25_11MHz.vhd \
 ../../../tools/phoenix_unzip/roms/prom_ic40.vhd \
 ../../../tools/phoenix_unzip/roms/prom_palette_ic40.vhd \
 ../../../tools/phoenix_unzip/roms/prom_palette_ic41.vhd \
-../../../rtl/osd/osd.vhd \
-../../../rtl/osd/char_rom.vhd \
-../../../rtl_vga/phoenix.vhd \
-../../../rtl_vga/phoenix_video_vga.vhd \
-../../../rtl_vga/vga.vhd \
-../../../rtl_vga/hdmi/vga2dvid.vhd \
-../../../rtl_vga/hdmi/tmds_encoder.vhd \
-../../../rtl_vga/hdmi-audio/av_hdmi.vhd \
-../../../rtl_vga/hdmi-audio/encoder.vhd \
-../../../rtl_vga/hdmi-audio/hdmidelay.vhd \
-../../../rtl_vga/hdmi-audio/serializer_generic.vhd \
-../../../rtl_vga/altera/cyclone4/serializer.vhd \
-../../../rtl_vga/xilinx/xc6/hdmi_out_xc6.vhd \
+../../../rtl_emard/osd/osd.vhd \
+../../../rtl_emard/osd/char_rom.vhd \
+../../../rtl_emard/vga/phoenix.vhd \
+../../../rtl_emard/vga/phoenix_video_vga.vhd \
+../../../rtl_emard/vga/vga.vhd \
+../../../rtl_emard/vga/hdmi/vga2dvid.vhd \
+../../../rtl_emard/vga/hdmi/tmds_encoder.vhd \
+../../../rtl_emard/vga/hdmi-audio/av_hdmi.vhd \
+../../../rtl_emard/vga/hdmi-audio/encoder.vhd \
+../../../rtl_emard/vga/hdmi-audio/hdmidelay.vhd \
+../../../rtl_emard/vga/hdmi-audio/serializer_generic.vhd \
+../../../rtl_emard/vga/altera/cyclone4/serializer.vhd \
+../../../rtl_emard/vga/xilinx/xc6/hdmi_out_xc6.vhd \
 
