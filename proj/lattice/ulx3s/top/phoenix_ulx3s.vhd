@@ -156,13 +156,18 @@ begin
     );
 
     -- keyboard joystick to inputs
-    btn_coin            <= not JoyPCFRLDU(7); -- F3 : Add coin
-    btn_player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
-    btn_player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
-    btn_left            <= not JoyPCFRLDU(2); -- LEFT arrow  : Left
-    btn_right           <= not JoyPCFRLDU(3); -- RIGHT arrow : Right
-    btn_fire            <= not JoyPCFRLDU(4); -- SPACE : Fire
-    btn_barrier         <= not JoyPCFRLDU(0); -- UP arrow : Protection 
+    process(clk_pixel)
+    begin
+      if rising_edge(clk_pixel) then
+        btn_coin            <= not JoyPCFRLDU(7); -- F3 : Add coin
+        btn_player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
+        btn_player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
+        btn_left            <= not JoyPCFRLDU(2); -- LEFT arrow  : Left
+        btn_right           <= not JoyPCFRLDU(3); -- RIGHT arrow : Right
+        btn_fire            <= not JoyPCFRLDU(4); -- SPACE : Fire
+        btn_barrier         <= not JoyPCFRLDU(0); -- UP arrow : Protection 
+      end if;
+    end process;
   end generate;
 
   -- hid joystick
