@@ -1,13 +1,5 @@
 ---------------------------------------------------------------------------------
--- DE2-35 Top level for Phoenix by Dar (darfpga@aol.fr) (April 2016)
--- http://darfpga.blogspot.fr
---
--- Main features
---  PS2 keyboard input
---  wm8731 sound output
---  NO board SRAM used
---
--- Uses pll for 18MHz and 11MHz generation from 50MHz
+-- ULX3S phoenix
 --
 -- Board switch :
 --   0 - 7 : dip switch
@@ -35,10 +27,16 @@ use ieee.numeric_std.all;
 library ecp5u;
 use ecp5u.components.all;
 
+-- package for usb joystick report decoded structure
+use work.report_decoded_pack.all;
+
 entity phoenix_ulx3s is
 generic
 (
   C_ps2_keyboard: boolean := false;
+  C_usbhid_joystick: boolean := true;
+  C_onboard_buttons: boolean := false;
+  C_autofire: boolean := true;
   C_clock_blinky: boolean := false
 );
 port(
@@ -79,31 +77,13 @@ port(
   -- i2c shared for digital video and RTC
   gpdi_scl, gpdi_sda: inout std_logic
 
-    --rs232_tx: out std_logic;
-    --rs232_rx: in std_logic;
-    --flash_so: in std_logic;
-    --flash_cen, flash_sck, flash_si: out std_logic;
-    --sdcard_so: in std_logic;
-    --sdcard_cen, sdcard_sck, sdcard_si: out std_logic;
-    --p_ring: out std_logic;
-    --p_tip: out std_logic_vector(3 downto 0);
-    --led: out std_logic_vector(7 downto 0);
-    --btn_left, btn_right, btn_up, btn_down, btn_center: in std_logic;
-    --sw: in std_logic_vector(3 downto 0);
-    --j1_2, j1_3, j1_4, j1_8, j1_9, j1_13, j1_14, j1_15: inout std_logic;
-    --j1_16, j1_17, j1_18, j1_19, j1_20, j1_21, j1_22, j1_23: inout std_logic;
-    --j2_2, j2_3, j2_4, j2_5, j2_6, j2_7, j2_8, j2_9: inout std_logic;
-    --j2_10, j2_11, j2_12, j2_13, j2_16: inout std_logic;
-    --sram_a: out std_logic_vector(18 downto 0);
-    --sram_d: inout std_logic_vector(15 downto 0);
-    --sram_wel, sram_lbl, sram_ubl: out std_logic
-    -- sram_oel: out std_logic -- XXX the old ULXP2 board needs this!
 );
 end;
 
 architecture struct of phoenix_ulx3s is
   signal clk_pixel, clk_pixel_shift, clkn_pixel_shift: std_logic;
   signal clk_stable: std_logic := '1';
+  signal clk_7M5Hz: std_logic;
 
   signal S_audio: std_logic_vector(23 downto 0) := (others => '0');
   signal S_spdif_out: std_logic;
@@ -122,24 +102,31 @@ architecture struct of phoenix_ulx3s is
   signal kbd_scancode  : std_logic_vector(7 downto 0);
   signal JoyPCFRLDU    : std_logic_vector(7 downto 0);
 
+  -- emard usb hid joystick
+  signal S_hid_reset: std_logic;
+  signal S_hid_report: std_logic_vector(63 downto 0);
+  signal S_report_decoded: T_report_decoded;
+  -- end emard usb hid joystick
+
   signal btn_coin, btn_fire, btn_barrier, btn_left, btn_right: std_logic;
   signal btn_player_start: std_logic_vector(1 downto 0);
 
   -- alias  audio_select : std_logic_vector(2 downto 0) is sw(10 downto 8);
-  signal R_blinky: std_logic_vector(25 downto 0);
-  signal R_blinky_shift: std_logic_vector(28 downto 0);
+  signal R_autofire: std_logic_vector(21 downto 0);
+  signal S_autofire: std_logic := '1';
+  signal S_btn_fire: std_logic;
 begin
   wifi_gpio0 <= btn(0);
 
   G_ddr: if true generate
-    clkgen_125_25: entity work.clk_25_100_125_25
+    clkgen_125_25: entity work.clk_25M_125Mpn_25M_7M5
     port map
     (
       clki => clk_25MHz,         --  25 MHz input from board
       clkop => clk_pixel_shift,  -- 125 MHz
       clkos => clkn_pixel_shift, -- 125 MHz inverted
       clkos2 => clk_pixel,       --  25 MHz
-      clkos3 => open             -- 100 MHz
+      clkos3 => clk_7M5Hz        --   7.5 MHz for USB HID
     );
   end generate;
 
@@ -168,7 +155,7 @@ begin
       JoyPCFRLDU  => JoyPCFRLDU 
     );
 
-    -- joystick to inputs
+    -- keyboard joystick to inputs
     btn_coin            <= not JoyPCFRLDU(7); -- F3 : Add coin
     btn_player_start(1) <= not JoyPCFRLDU(6); -- F2 : Start 2 Players
     btn_player_start(0) <= not JoyPCFRLDU(5); -- F1 : Start 1 Player
@@ -178,31 +165,67 @@ begin
     btn_barrier         <= not JoyPCFRLDU(0); -- UP arrow : Protection 
   end generate;
 
-  G_no_ps2_keyboard: if not C_ps2_keyboard generate
-    btn_coin            <= btn(4);   -- down  : insert coin
-    btn_player_start(0) <= btn(3);   -- up    : Start 1 Player
-    btn_player_start(1) <=    '0';   -- none  : Start 2 Players
-    btn_left            <= btn(5);   -- LEFT arrow  : Left
-    btn_right           <= btn(6);   -- RIGHT arrow : Right
-    btn_fire            <= btn(1);   -- btn1  : Fire
-    btn_barrier         <= btn(2);   -- btn2  : Protection 
+  -- hid joystick
+  G_hid_joystick: if C_usbhid_joystick generate
+  usbhid_host_inst: entity usbhid_host
+  port map
+  (
+    clk => clk_7M5Hz, -- 7.5 MHz for low-speed USB1.0 device or 60 MHz for full-speed USB1.1 device
+    reset => S_hid_reset,
+    usb_data(1) => usb_fpga_dp,
+    usb_data(0) => usb_fpga_dn,
+    hid_report => S_hid_report,
+    leds => open -- debug
+  );
+
+  usbhid_report_decoder_inst: entity usbhid_report_decoder
+  port map
+  (
+    clk => clk_7M5Hz,
+    hid_report => S_hid_report,
+    decoded => S_report_decoded
+  );
+  
+  process(clk_pixel)
+  begin
+    if rising_edge(clk_pixel) then
+      btn_coin            <= S_report_decoded.btn_fps;       -- fps button: insert coin
+      btn_player_start(0) <= S_report_decoded.btn_start;     -- "start" : Start 1 Player
+      btn_player_start(1) <= S_report_decoded.btn_back;      -- "back"  : Start 2 Players
+      btn_left            <= S_report_decoded.lstick_left;   -- left stick move left
+      btn_right           <= S_report_decoded.lstick_right;  -- left stick move right
+      btn_fire            <= S_report_decoded.btn_b or S_report_decoded.btn_rtrigger; -- btn1  : Fire
+      btn_barrier         <= S_report_decoded.btn_a or S_report_decoded.btn_rbumper;  -- btn2  : Protection 
+    end if;
+  end process;
   end generate;
 
-  G_clock_blinky: if C_clock_blinky generate
+  -- onboard buttons as joystick
+  G_onboard_buttons: if C_onboard_buttons generate
     process(clk_pixel)
     begin
       if rising_edge(clk_pixel) then
-        R_blinky <= R_blinky + 1;
-      end if;
-    end process;
-
-    process(clk_pixel_shift)
-    begin
-      if rising_edge(clk_pixel_shift) then
-        R_blinky_shift <= R_blinky_shift + 1;
+        btn_coin            <= not btn(0);   -- power : insert coin
+        btn_player_start(0) <= btn(3);   -- up    : Start 1 Player
+        btn_player_start(1) <= btn(4);   -- down  : Start 2 Players
+        btn_left            <= btn(1);   -- LEFT btn1: Left
+        btn_right           <= btn(2);   -- LEFT btn2: Right
+        btn_fire            <= btn(6);   -- cursor right: Fire
+        btn_barrier         <= btn(5);   -- cursor left: Protection 
       end if;
     end process;
   end generate;
+
+  G_autofire: if C_autofire generate
+    process(clk_pixel)
+    begin
+      if rising_edge(clk_pixel) then
+        R_autofire <= R_autofire + 1;
+      end if;
+    end process;
+    S_autofire <= R_autofire(R_autofire'high);
+  end generate;
+  S_btn_fire <= btn_fire and S_autofire;
 
   phoenix: entity work.phoenix
   generic map
@@ -219,7 +242,7 @@ begin
     btn_player_start => btn_player_start,
     btn_left     => btn_left,
     btn_right    => btn_right,
-    btn_fire     => btn_fire,
+    btn_fire     => S_btn_fire,
     btn_barrier  => btn_barrier,
     vga_r        => S_vga_r,
     vga_g        => S_vga_g,
@@ -247,8 +270,8 @@ begin
   audio_v(1 downto 0) <= (others => S_spdif_out);
 
   -- some debugging with LEDs
-  led(0) <= R_blinky(R_blinky'high);
-  led(1) <= R_blinky_shift(R_blinky_shift'high);
+  --led(0) <= R_blinky(R_blinky'high);
+  --led(1) <= R_blinky_shift(R_blinky_shift'high);
   --led(2) <= not csync;
   --led(3) <= vblank;
   --led(4) <= blank;
