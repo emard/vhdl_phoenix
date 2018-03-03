@@ -81,31 +81,31 @@
         <Source name="../../../tools/phoenix_unzip/roms/prom_palette_ic41.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl/osd/osd.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/osd/osd.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl/osd/char_rom.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/osd/char_rom.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl_vga/phoenix.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/vga/phoenix.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl_vga/phoenix_video_vga.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/vga/phoenix_video_vga.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl_vga/vga.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/vga/vga.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl_vga/hdmi/vga2dvid.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/vga/hdmi/vga2dvid.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl_vga/hdmi/tmds_encoder.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/vga/hdmi/tmds_encoder.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl_vga/hdmi/ddr_dvid_out_se.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/vga/hdmi/ddr_dvid_out_se.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
-        <Source name="../../../rtl_vga/lattice/xo2/ddr_out.vhd" type="VHDL" type_short="VHDL">
+        <Source name="../../../rtl_emard/vga/lattice/xo2/ddr_out.vhd" type="VHDL" type_short="VHDL">
             <Options/>
         </Source>
         <Source name="FleaFPGA-Uno_FLASH.xcf" type="Programming Project File" type_short="Programming" excluded="TRUE">
