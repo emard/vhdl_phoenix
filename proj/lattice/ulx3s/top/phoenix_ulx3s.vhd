@@ -34,13 +34,13 @@ entity phoenix_ulx3s is
 generic
 (
   C_ps2_keyboard: boolean := false;
-  C_usbhid_joystick: boolean := true;
-  C_onboard_buttons: boolean := false;
+  C_usbhid_joystick: boolean := false;
+  C_onboard_buttons: boolean := true;
   C_autofire: boolean := true;
   C_clock_blinky: boolean := false
 );
 port(
-  clk_25MHz: in std_logic;
+  clk_25mhz: in std_logic;
 
   -- UART1 (WiFi serial)
   wifi_rxd: out   std_logic;
@@ -49,7 +49,9 @@ port(
   wifi_en: inout  std_logic := 'Z'; -- '0' will disable wifi by default
   wifi_gpio0, wifi_gpio2, wifi_gpio16, wifi_gpio17: inout std_logic := 'Z';
   
-  usb_fpga_dp, usb_fpga_dn: inout  std_logic := 'Z'; -- US2 connector
+  usb_fpga_dp: in std_logic;
+  usb_fpga_bd_dp, usb_fpga_bd_dn: inout std_logic;
+  usb_fpga_pu_dp, usb_fpga_pu_dn: out std_logic;
 
   -- Onboard blinky
   led: out std_logic_vector(7 downto 0);
@@ -71,8 +73,8 @@ port(
   --hdmi_clk: out std_logic
 
   -- Digital Video (differential outputs)
-  gpdi_dp, gpdi_dn: out std_logic_vector(2 downto 0);
-  gpdi_clkp, gpdi_clkn: out std_logic;
+  gpdi_dp, gpdi_dn: out std_logic_vector(3 downto 0);
+  --gpdi_clkp, gpdi_clkn: out std_logic;
 
   -- i2c shared for digital video and RTC
   gpdi_scl, gpdi_sda: inout std_logic
@@ -82,16 +84,16 @@ end;
 
 architecture struct of phoenix_ulx3s is
   signal clk_pixel, clk_pixel_shift, clkn_pixel_shift: std_logic;
+  signal clk_usb: std_logic;
   signal clk_stable: std_logic := '1';
-  signal clk_7M5Hz: std_logic;
 
   signal S_audio: std_logic_vector(23 downto 0) := (others => '0');
   signal S_spdif_out: std_logic;
   signal S_vga_r, S_vga_g, S_vga_b: std_logic_vector(1 downto 0);
   signal S_vga_vsync, S_vga_hsync: std_logic;
   signal S_vga_vblank, S_vga_blank: std_logic;
-  signal ddr_d: std_logic_vector(2 downto 0);
-  signal ddr_clk: std_logic;
+  signal ddr_d: std_logic_vector(3 downto 0);
+  --signal ddr_clk: std_logic;
 
   signal dvid_red, dvid_green, dvid_blue, dvid_clock: std_logic_vector(1 downto 0);
   
@@ -104,6 +106,7 @@ architecture struct of phoenix_ulx3s is
 
   -- emard usb hid joystick
   signal S_hid_reset: std_logic;
+  signal S_hid_valid: std_logic;
   signal S_hid_report: std_logic_vector(63 downto 0);
   signal S_report_decoded: T_report_decoded;
   -- end emard usb hid joystick
@@ -119,14 +122,14 @@ begin
   wifi_gpio0 <= btn(0);
 
   G_ddr: if true generate
-    clkgen_125_25: entity work.clk_25M_125Mpn_25M_7M5
+    clkgen_125_25: entity work.clk_25_125_68_6_25
     port map
     (
-      clki => clk_25MHz,         --  25 MHz input from board
+      clki => clk_25mhz,         --  25 MHz input from board
       clkop => clk_pixel_shift,  -- 125 MHz
-      clkos => clkn_pixel_shift, -- 125 MHz inverted
-      clkos2 => clk_pixel,       --  25 MHz
-      clkos3 => clk_7M5Hz        --   7.5 MHz for USB HID
+      clkos => open,             --  68.18 MHz unused
+      clkos2 => clk_usb,         --   6 MHz for USB
+      clkos3 => clk_pixel        --  25 MHz
     );
   end generate;
 
@@ -139,11 +142,13 @@ begin
     port map
     (
       clk       => clk_pixel,
-      kbd_clk   => usb_fpga_dp, -- D+
-      kbd_dat   => usb_fpga_dn, -- D-
+      kbd_clk   => usb_fpga_bd_dp, -- D+
+      kbd_dat   => usb_fpga_bd_dn, -- D-
       interrupt => kbd_intr,
       scancode  => kbd_scancode
     );
+    usb_fpga_pu_dp <= '1';
+    usb_fpga_pu_dn <= '1';
 
     -- translate scancode to joystick
     Joystick: entity work.kbd_joystick
@@ -172,25 +177,40 @@ begin
 
   -- hid joystick
   G_hid_joystick: if C_usbhid_joystick generate
-  usbhid_host_inst: entity usbhid_host
+
+  usbhid_host_inst: entity usbh_host_hid
+  generic map
+  (
+    C_usb_speed => '0' -- '0':Low-speed '1':Full-speed
+  )
   port map
   (
-    clk => clk_7M5Hz, -- 7.5 MHz for low-speed USB1.0 device or 60 MHz for full-speed USB1.1 device
-    reset => S_hid_reset,
-    usb_data(1) => usb_fpga_dp,
-    usb_data(0) => usb_fpga_dn,
+    clk => clk_usb, -- 6 MHz for low-speed USB1.0 device or 48 MHz for full-speed USB1.1 device
+    bus_reset => S_hid_reset,
+    usb_dif => usb_fpga_dp,
+    usb_dp => usb_fpga_bd_dp,
+    usb_dn => usb_fpga_bd_dn,
     hid_report => S_hid_report,
-    leds => open -- debug
+    hid_valid => S_hid_valid
   );
+  usb_fpga_pu_dp <= '0';
+  usb_fpga_pu_dn <= '0';
 
   usbhid_report_decoder_inst: entity usbhid_report_decoder
+  generic map
+  (
+    C_rmouse => false, -- no mouse 
+    C_rmousex_scaler => 23, -- less -> faster mouse
+    C_rmousey_scaler => 23  -- less -> faster mouse
+  )
   port map
   (
-    clk => clk_7M5Hz,
+    clk => clk_usb,
     hid_report => S_hid_report,
+    hid_valid => S_hid_valid,
     decoded => S_report_decoded
   );
-  
+
   process(clk_pixel)
   begin
     if rising_edge(clk_pixel) then
@@ -310,31 +330,15 @@ begin
       out_clock => dvid_clock
   );
 
-  -- this module instantiates vendor specific modules ddr_out to
+  -- vendor specific DDR modules
   -- convert SDR 2-bit input to DDR clocked 1-bit output (single-ended)
-  G_vgatext_ddrout: entity work.ddr_dvid_out_se
-  port map
-  (
-    clk       => clk_pixel_shift,
-    clk_n     => clkn_pixel_shift,
-    in_red    => dvid_red,
-    in_green  => dvid_green,
-    in_blue   => dvid_blue,
-    in_clock  => dvid_clock,
-    out_red   => ddr_d(2),
-    out_green => ddr_d(1),
-    out_blue  => ddr_d(0),
-    out_clock => ddr_clk
-  );
-
-  gpdi_data_channels: for i in 0 to 2 generate
-    gpdi_diff_data: OLVDS
-    port map(A => ddr_d(i), Z => gpdi_dp(i), ZN => gpdi_dn(i));
+  ddr_red:   ODDRX1F port map (D0=>dvid_red(0),   D1=>dvid_red(1),   Q=>ddr_d(2), SCLK=>clk_pixel_shift, RST=>'0');
+  ddr_green: ODDRX1F port map (D0=>dvid_green(0), D1=>dvid_green(1), Q=>ddr_d(1), SCLK=>clk_pixel_shift, RST=>'0');
+  ddr_blue:  ODDRX1F port map (D0=>dvid_blue(0),  D1=>dvid_blue(1),  Q=>ddr_d(0), SCLK=>clk_pixel_shift, RST=>'0');
+  ddr_clock: ODDRX1F port map (D0=>dvid_clock(0), D1=>dvid_clock(1), Q=>ddr_d(3), SCLK=>clk_pixel_shift, RST=>'0');
+  -- vendor specific modules for differential output
+  gpdi_data_channels: for i in 0 to 3 generate
+    gpdi_diff_data: OLVDS port map (A => ddr_d(i), Z => gpdi_dp(i), ZN => gpdi_dn(i));
   end generate;
-  gpdi_diff_clock: OLVDS
-  port map(A => ddr_clk, Z => gpdi_clkp, ZN => gpdi_clkn);
-  
-  
-
 
 end struct;
